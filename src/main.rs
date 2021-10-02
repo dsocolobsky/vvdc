@@ -3,6 +3,7 @@ use std::fmt;
 #[derive(Debug, PartialEq)]
 enum TokenType {
     Literal,
+    Number,
     Equals,
     Plus,
     Minus,
@@ -10,10 +11,17 @@ enum TokenType {
     Semicolon
 }
 
+#[derive(Debug, PartialEq)]
+enum LiteralType {
+    Identifier(String),
+    Symbol(String),
+    Number(i64),
+}
+
 #[derive(PartialEq)]
 struct Token {
     token_type: TokenType,
-    literal: String,
+    literal: Option<LiteralType>,
 }
 
 impl fmt::Debug for Token {
@@ -24,27 +32,52 @@ impl fmt::Debug for Token {
 
 impl Token {
     fn literal(literal: &str) -> Token {
-        Token{token_type: TokenType::Literal, literal: literal.to_string()}
+        Token {
+            token_type: TokenType::Literal,
+            literal: Some(LiteralType::Identifier(literal.to_string()))
+        }
+    }
+
+    fn number(n: i64) -> Token {
+        Token {
+            token_type: TokenType::Number, 
+            literal: Some(LiteralType::Number(n)),
+        }
     }
 
     fn equals() -> Token {
-        Token{token_type: TokenType::Equals, literal: "=".to_string()}
+        Token {
+            token_type: TokenType::Equals,
+             literal: Some(LiteralType::Symbol("=".to_string()))
+        }
     }
 
     fn plus() -> Token {
-        Token{token_type: TokenType::Plus, literal: "+".to_string()}
+        Token {
+            token_type: TokenType::Plus,
+             literal: Some(LiteralType::Symbol("+".to_string()))
+        }
     }
 
     fn minus() -> Token {
-        Token{token_type: TokenType::Minus, literal: "-".to_string()}
+        Token {
+            token_type: TokenType::Minus,
+             literal: Some(LiteralType::Symbol("-".to_string()))
+        }
     }
 
     fn asterisk() -> Token {
-        Token{token_type: TokenType::Asterisk, literal: "*".to_string()}
+        Token {
+            token_type: TokenType::Asterisk,
+             literal: Some(LiteralType::Symbol("*".to_string()))
+        }
     }
 
     fn semicolon() -> Token {
-        Token{token_type: TokenType::Semicolon, literal: ";".to_string()}
+        Token {
+            token_type: TokenType::Semicolon,
+            literal: Some(LiteralType::Symbol(";".to_string()))
+        }
     }
 }
 
@@ -186,4 +219,9 @@ mod tests {
         Token::asterisk(), Token::literal("e"), Token::semicolon()], &tokens[..]);
     }
 
+    #[test]
+    fn parse_a_number() {
+        let tokens = parse_program("4");
+        assert_eq!([Token::number(4)], &tokens[..]);
+    }
 }
