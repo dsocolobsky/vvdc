@@ -81,16 +81,23 @@ impl Token {
     }
 }
 
+#[derive(Debug, PartialEq)]
+enum ParserState {
+    Scanning,
+    ParsingLiteral,
+    ParsingNumber,
+}
+
 fn parse_program(program: &str) -> Vec<Token> {
     println!("Parsing: {:?}", program);
-    let mut parsing_literal = false;
+    let mut parser_state = ParserState::Scanning;
     let mut last_char: Option<char> = None;
     let mut tokens:Vec<Token> = Vec::new();
     let mut iter = program.chars().peekable();
 
     while let Some(c) = iter.next() {
 
-        if parsing_literal {
+        if matches!(parser_state, ParserState::ParsingLiteral | ParserState::ParsingNumber) {
             let last_ch = last_char.expect("last char should not be empty");
             let mut literal = String::from("");
             // We know last and current must be literal chars
@@ -103,7 +110,7 @@ fn parse_program(program: &str) -> Vec<Token> {
                     if !nc.is_ascii_alphanumeric() {
                         println!("parsed literal: {}", literal);
                         tokens.push(Token::literal(&literal));
-                        parsing_literal = false;
+                        parser_state = ParserState::Scanning;
                         continue;
                     }
                 },
@@ -124,7 +131,7 @@ fn parse_program(program: &str) -> Vec<Token> {
             
             println!("parsed literal: {}", literal);
             tokens.push(Token::literal(&literal));
-            parsing_literal = false;
+            parser_state = ParserState::Scanning;
             continue;
         }
 
@@ -143,7 +150,7 @@ fn parse_program(program: &str) -> Vec<Token> {
                         tokens.push(Token::literal(&String::from(c)));
                         continue;
                     } else {
-                        parsing_literal = true;
+                        parser_state = ParserState::ParsingLiteral;
                     }
                 }
             },
