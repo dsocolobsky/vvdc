@@ -45,7 +45,8 @@ fn parse_program(program: &str) -> Vec<Token> {
             '-' => tokens.push(Token::minus()),
             '*' => tokens.push(Token::asterisk()),
             ';' => tokens.push(Token::semicolon()),
-            _ => {}
+            ' ' => {},
+            _ => panic!("unrecognized: '{}'", c),
         }
     }
     return tokens;
@@ -72,10 +73,23 @@ mod tests {
     }
 
     #[test]
+    #[should_panic]
+    fn parse_invalid_token_should_raise_error() {
+        let tokens = parse_program("=%");
+    }
+
+    #[test]
     fn parse_several_tokens() {
         let tokens = parse_program("=+-*+=;");
         assert_eq!([Token::equals(), Token::plus(), Token::minus(), Token::asterisk(), Token::plus(),
         Token::equals(), Token::semicolon()], &tokens[..]);
+    }
+
+    #[test]
+    fn parse_several_tokens_with_spaces() {
+        let tokens = parse_program(" + -    ;; *");
+        assert_eq!([Token::plus(), Token::minus(), Token::semicolon(), 
+            Token::semicolon(), Token::asterisk()], &tokens[..]);
     }
 
 }
