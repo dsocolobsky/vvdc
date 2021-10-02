@@ -107,13 +107,16 @@ fn parse_program(program: &str) -> Vec<Token> {
     let mut iter = program.chars().peekable();
 
     while let Some(c) = iter.next() {
+        println!("ch: {:?}", c);
 
         if matches!(parser_state, ParserState::ParsingLiteral | ParserState::ParsingNumber) {
             let last_ch = last_char.expect("last char should not be empty");
             let mut literal = String::from("");
             // We know last and current must be literal chars
             literal.push(last_ch);
+            println!("push (lch): {:?}", last_ch);
             literal.push(c);
+            println!("push: {:?}", c);
 
             match iter.peek() {
                 Some(nc) => {
@@ -125,7 +128,7 @@ fn parse_program(program: &str) -> Vec<Token> {
                         continue;
                     }
                 },
-                None => break, // End of the program, exit.
+                None => {}, // End of the program, skip and finish.
             }
     
             // Here we know for sure the next char is still part of the literal
@@ -270,5 +273,11 @@ mod tests {
     fn parse_a_multiple_digit_number() {
         let tokens = parse_program("1337");
         assert_eq!([Token::number(1337)], &tokens[..]);
+    }
+
+    #[test]
+    fn parse_number_and_symbol() {
+        let tokens = parse_program("4*32");
+        assert_eq!([Token::number(4), Token::asterisk(), Token::number(32)], &tokens[..]);        
     }
 }
