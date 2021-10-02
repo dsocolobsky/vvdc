@@ -9,30 +9,35 @@ enum TokenType {
 }
 
 #[derive(Debug, PartialEq)]
-struct Token<'a> {
+struct Token {
     token_type: TokenType,
-    literal: &'a str,
+    literal: String,
 }
 
-impl Token<'_> {
-    fn equals() -> Token<'static> {
-        Token{token_type: TokenType::Equals, literal: "="}
+impl Token {
+
+    fn literal(literal: &str) -> Token {
+        Token{token_type: TokenType::Literal, literal: literal.to_string()}
     }
 
-    fn plus() -> Token<'static> {
-        Token{token_type: TokenType::Plus, literal: "+"}
+    fn equals() -> Token {
+        Token{token_type: TokenType::Equals, literal: "=".to_string()}
     }
 
-    fn minus() -> Token<'static> {
-        Token{token_type: TokenType::Minus, literal: "-"}
+    fn plus() -> Token {
+        Token{token_type: TokenType::Plus, literal: "+".to_string()}
     }
 
-    fn asterisk() -> Token<'static> {
-        Token{token_type: TokenType::Asterisk, literal: "*"}
+    fn minus() -> Token {
+        Token{token_type: TokenType::Minus, literal: "-".to_string()}
     }
 
-    fn semicolon() -> Token<'static> {
-        Token{token_type: TokenType::Semicolon, literal: ";"}
+    fn asterisk() -> Token {
+        Token{token_type: TokenType::Asterisk, literal: "*".to_string()}
+    }
+
+    fn semicolon() -> Token {
+        Token{token_type: TokenType::Semicolon, literal: ";".to_string()}
     }
 }
 
@@ -90,6 +95,12 @@ mod tests {
         let tokens = parse_program(" + -    ;; *");
         assert_eq!([Token::plus(), Token::minus(), Token::semicolon(), 
             Token::semicolon(), Token::asterisk()], &tokens[..]);
+    }
+
+    #[test]
+    fn parse_literal() {
+        let tokens = parse_program("banana");
+        assert_eq!([Token::literal("banana")], &tokens[..]);
     }
 
 }
