@@ -88,6 +88,17 @@ enum ParserState {
     ParsingNumber,
 }
 
+fn parse_single_character(c: char) -> Token {
+    if c.is_ascii_alphabetic() {
+        Token::literal(&String::from(c))
+    } else if c.is_ascii_digit() {
+        let digit = (String::from(c)).parse::<i64>().unwrap();
+        Token::number(digit)
+    } else {
+        panic!("{:?} is neither numeric nor alphabetic!", c);
+    }
+}
+
 fn parse_program(program: &str) -> Vec<Token> {
     println!("Parsing: {:?}", program);
     let mut parser_state = ParserState::Scanning;
@@ -130,7 +141,15 @@ fn parse_program(program: &str) -> Vec<Token> {
             }
             
             println!("parsed literal: {}", literal);
-            tokens.push(Token::literal(&literal));
+            match parser_state {
+                ParserState::ParsingLiteral => {tokens.push(Token::literal(&literal))},
+                ParserState::ParsingNumber => {
+                    let as_number = literal.parse::<i64>().unwrap();
+                    tokens.push(Token::number(as_number))
+                },
+                _ => {panic!("Should not be parsing in this state")},
+            }
+
             parser_state = ParserState::Scanning;
             continue;
         }
@@ -148,24 +167,19 @@ fn parse_program(program: &str) -> Vec<Token> {
                 if let Some(nc) = iter.peek() {
                     if !(*nc).is_ascii_alphanumeric() {
                         println!("next is not alphanumeric");
-                        if c.is_ascii_alphabetic() {
-                            tokens.push(Token::literal(&String::from(c)));
-                        } else if c.is_ascii_digit() {
-                            let digit = (String::from(c)).parse::<i64>().unwrap();
-                            tokens.push(Token::number(digit));
-                        }
-                        continue;
+                        tokens.push(parse_single_character(c));
                     } else {
-                        parser_state = ParserState::ParsingLiteral;
+                        parser_state = if (*nc).is_ascii_alphabetic() {
+                            ParserState::ParsingLiteral
+                        } else if (*nc).is_ascii_digit() {
+                            ParserState::ParsingNumber
+                        } else {
+                            panic!("{:?} is neither alphabetic nor number", nc)
+                        }
                     }
                 } else {
                     println!("EOF");
-                    if c.is_ascii_alphabetic() {
-                        tokens.push(Token::literal(&String::from(c)));
-                    } else if c.is_ascii_digit() {
-                        let digit = (String::from(c)).parse::<i64>().unwrap();
-                        tokens.push(Token::number(digit));
-                    }
+                    tokens.push(parse_single_character(c));
                 }
             },
             _ => panic!("unrecognized: '{}'", c),
@@ -247,8 +261,14 @@ mod tests {
     }
 
     #[test]
-    fn parse_a_number() {
+    fn parse_a_single_digit_number() {
         let tokens = parse_program("4");
         assert_eq!([Token::number(4)], &tokens[..]);
+    }
+
+    #[test]
+    fn parse_a_multiple_digit_number() {
+        let tokens = parse_program("1337");
+        assert_eq!([Token::number(1337)], &tokens[..]);
     }
 }
