@@ -3,6 +3,7 @@ use std::fmt;
 #[derive(Debug, PartialEq)]
 enum TokenType {
     Literal,
+    String,
     Number,
     Equals,
     Plus,
@@ -16,6 +17,7 @@ enum LiteralType {
     Identifier(String),
     Symbol(String),
     Number(i64),
+    String(String),
 }
 
 impl fmt::Debug for LiteralType {
@@ -24,6 +26,7 @@ impl fmt::Debug for LiteralType {
             LiteralType::Identifier(s) => write!(f, "i{:?}", s),
             LiteralType::Symbol(s) => write!(f, "{:?}", s),
             LiteralType::Number(n) => write!(f, "n{:?}", n),
+            LiteralType::String(s) => write!(f, "{:?}", s),
         }
     }
 }
@@ -52,6 +55,13 @@ impl Token {
         Token {
             token_type: TokenType::Number, 
             literal: Some(LiteralType::Number(n)),
+        }
+    }
+
+    fn string(string: &str) -> Token {
+        Token {
+            token_type: TokenType::String,
+            literal: Some(LiteralType::String(string.to_string()))
         }
     }
 
@@ -91,11 +101,14 @@ impl Token {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 enum ParserState {
     Scanning,
     ParsingLiteral,
     ParsingNumber,
+    PreParsingString,
+    ParsingString,
+    PostParsingString,
 }
 
 fn parse_single_character(c: char) -> Token {
@@ -122,6 +135,10 @@ fn token_given_parser_state(buf: &str, state: ParserState) -> Token {
             println!("parsed number: {}", as_number);
             Token::number(as_number)
         },
+        ParserState::ParsingString => {
+            println!("parsed string: {}", buf);
+            Token::string(&buf)
+        }
         _ => {panic!("panic parsing {:?}", buf)},
     }
 }
@@ -136,12 +153,15 @@ fn parse_program(program: &str) -> Vec<Token> {
     while let Some(c) = iter.next() {
         println!("ch: {:?}", c);
 
-        if matches!(parser_state, ParserState::ParsingLiteral | ParserState::ParsingNumber) {
+        if matches!(parser_state, 
+            ParserState::ParsingLiteral | ParserState::ParsingNumber | ParserState::ParsingString) {
             let last_ch = last_char.expect("last char should not be empty");
             let mut literal = String::from("");
             // We know last and current must be literal chars
-            literal.push(last_ch);
-            println!("push (lch): {:?}", last_ch);
+            if parser_state != ParserState::ParsingString {
+                literal.push(last_ch);
+                println!("push (lch): {:?}", last_ch);
+            }
             literal.push(c);
             println!("push: {:?}", c);
 
@@ -150,7 +170,11 @@ fn parse_program(program: &str) -> Vec<Token> {
                     // Case when it's a 2-char length literal
                     if !nc.is_ascii_alphanumeric() {
                         tokens.push(token_given_parser_state(&literal, parser_state));
-                        parser_state = ParserState::Scanning;
+                        parser_state = if parser_state == ParserState::ParsingString {
+                            ParserState::PostParsingString
+                        } else {
+                            ParserState::Scanning
+                        };
                         continue;
                     }
                 },
@@ -170,7 +194,12 @@ fn parse_program(program: &str) -> Vec<Token> {
             }
 
             tokens.push(token_given_parser_state(&literal, parser_state));
-            parser_state = ParserState::Scanning;
+            parser_state = if parser_state == ParserState::ParsingString {
+                println!("fake parsing string");
+                ParserState::PostParsingString
+            } else {
+                ParserState::Scanning
+            };
             continue;
         }
 
@@ -182,12 +211,25 @@ fn parse_program(program: &str) -> Vec<Token> {
             '*' => { println!("Asterisk"); tokens.push(Token::asterisk()); },
             ';' => { println!("Semicolon"); tokens.push(Token::semicolon()); },
             ' ' => {println!("space")},
+            '"' => {
+                if matches!(parser_state, ParserState::ParsingString | ParserState::PostParsingString) {
+                    println!("end of string");
+                    parser_state = ParserState::Scanning;
+                } else {
+                    println!("start of string");
+                    parser_state = ParserState::ParsingString;
+                }
+                
+            },
             c if c.is_ascii_alphanumeric() => {
                 if let Some(nc) = iter.peek() {
                     if !(*nc).is_ascii_alphanumeric() {
                         tokens.push(parse_single_character(c));
                     } else {
-                        parser_state = if (*nc).is_ascii_alphabetic() {
+                        parser_state = if parser_state == ParserState::PreParsingString {
+                            println!("keep parsing string");
+                            ParserState::ParsingString
+                        } else if (*nc).is_ascii_alphabetic() {
                             println!("Start parse literal");
                             ParserState::ParsingLiteral
                         } else if (*nc).is_ascii_digit() {
@@ -309,5 +351,11 @@ mod tests {
         assert_eq!([Token::literal("x"), Token::equals(), Token::number(4), Token::asterisk(),
                     Token::number(35), Token::plus(), Token::number(2), Token::number(1), Token::semicolon()], 
                     &tokens[..]);
+    }
+
+    #[test]
+    fn parse_single_string() {
+        let tokens = parse_program(r#""cafe""#);
+        assert_eq!([Token::string("cafe")], &tokens[..]);
     }
 }
