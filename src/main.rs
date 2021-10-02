@@ -147,10 +147,24 @@ fn parse_program(program: &str) -> Vec<Token> {
                 println!("starting parse literal");
                 if let Some(nc) = iter.peek() {
                     if !(*nc).is_ascii_alphanumeric() {
-                        tokens.push(Token::literal(&String::from(c)));
+                        println!("next is not alphanumeric");
+                        if c.is_ascii_alphabetic() {
+                            tokens.push(Token::literal(&String::from(c)));
+                        } else if c.is_ascii_digit() {
+                            let digit = (String::from(c)).parse::<i64>().unwrap();
+                            tokens.push(Token::number(digit));
+                        }
                         continue;
                     } else {
                         parser_state = ParserState::ParsingLiteral;
+                    }
+                } else {
+                    println!("EOF");
+                    if c.is_ascii_alphabetic() {
+                        tokens.push(Token::literal(&String::from(c)));
+                    } else if c.is_ascii_digit() {
+                        let digit = (String::from(c)).parse::<i64>().unwrap();
+                        tokens.push(Token::number(digit));
                     }
                 }
             },
@@ -205,6 +219,12 @@ mod tests {
     fn parse_literal() {
         let tokens = parse_program("banana");
         assert_eq!([Token::literal("banana")], &tokens[..]);
+    }
+
+    #[test]
+    fn parse_single_letter_literal() {
+        let tokens = parse_program("a");
+        assert_eq!([Token::literal("a")], &tokens[..]);
     }
 
     #[test]
