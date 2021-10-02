@@ -11,11 +11,21 @@ enum TokenType {
     Semicolon
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(PartialEq)]
 enum LiteralType {
     Identifier(String),
     Symbol(String),
     Number(i64),
+}
+
+impl fmt::Debug for LiteralType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match &*self {
+            LiteralType::Identifier(s) => write!(f, "{:?}", s),
+            LiteralType::Symbol(s) => write!(f, "{:?}", s),
+            LiteralType::Number(n) => write!(f, "{:?}", n),
+        }
+    }
 }
 
 #[derive(PartialEq)]
@@ -26,7 +36,7 @@ struct Token {
 
 impl fmt::Debug for Token {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:?}", self.literal)
+        write!(f, "{:?}", self.literal.as_ref().unwrap())
     }
 }
 
@@ -279,5 +289,13 @@ mod tests {
     fn parse_number_and_symbol() {
         let tokens = parse_program("4*32");
         assert_eq!([Token::number(4), Token::asterisk(), Token::number(32)], &tokens[..]);        
+    }
+
+    #[test]
+    fn parse_complex_expression_with_numbers() {
+        let tokens = parse_program("x = 4 * 35+2 1;");
+        assert_eq!([Token::literal("x"), Token::equals(), Token::number(4), Token::asterisk(),
+                    Token::number(35), Token::plus(), Token::number(2), Token::number(1), Token::semicolon()], 
+                    &tokens[..]);
     }
 }
