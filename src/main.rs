@@ -21,9 +21,9 @@ enum LiteralType {
 impl fmt::Debug for LiteralType {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match &*self {
-            LiteralType::Identifier(s) => write!(f, "{:?}", s),
+            LiteralType::Identifier(s) => write!(f, "i{:?}", s),
             LiteralType::Symbol(s) => write!(f, "{:?}", s),
-            LiteralType::Number(n) => write!(f, "{:?}", n),
+            LiteralType::Number(n) => write!(f, "n{:?}", n),
         }
     }
 }
@@ -100,12 +100,29 @@ enum ParserState {
 
 fn parse_single_character(c: char) -> Token {
     if c.is_ascii_alphabetic() {
+        println!("Parsing single character");
         Token::literal(&String::from(c))
     } else if c.is_ascii_digit() {
+        println!("Parsing single digit");
         let digit = (String::from(c)).parse::<i64>().unwrap();
         Token::number(digit)
     } else {
         panic!("{:?} is neither numeric nor alphabetic!", c);
+    }
+}
+
+fn token_given_parser_state(buf: &str, state: ParserState) -> Token {
+    match state {
+        ParserState::ParsingLiteral => {
+            println!("parsed literal: {}", buf);
+            Token::literal(&buf)
+        },
+        ParserState::ParsingNumber => {
+            let as_number = buf.parse::<i64>().unwrap();
+            println!("parsed number: {}", as_number);
+            Token::number(as_number)
+        },
+        _ => {panic!("panic parsing {:?}", buf)},
     }
 }
 
@@ -132,8 +149,7 @@ fn parse_program(program: &str) -> Vec<Token> {
                 Some(nc) => {
                     // Case when it's a 2-char length literal
                     if !nc.is_ascii_alphanumeric() {
-                        println!("parsed literal: {}", literal);
-                        tokens.push(Token::literal(&literal));
+                        tokens.push(token_given_parser_state(&literal, parser_state));
                         parser_state = ParserState::Scanning;
                         continue;
                     }
@@ -152,17 +168,8 @@ fn parse_program(program: &str) -> Vec<Token> {
                     }
                 }
             }
-            
-            println!("parsed literal: {}", literal);
-            match parser_state {
-                ParserState::ParsingLiteral => {tokens.push(Token::literal(&literal))},
-                ParserState::ParsingNumber => {
-                    let as_number = literal.parse::<i64>().unwrap();
-                    tokens.push(Token::number(as_number))
-                },
-                _ => {panic!("Should not be parsing in this state")},
-            }
 
+            tokens.push(token_given_parser_state(&literal, parser_state));
             parser_state = ParserState::Scanning;
             continue;
         }
@@ -176,22 +183,21 @@ fn parse_program(program: &str) -> Vec<Token> {
             ';' => { println!("Semicolon"); tokens.push(Token::semicolon()); },
             ' ' => {println!("space")},
             c if c.is_ascii_alphanumeric() => {
-                println!("starting parse literal");
                 if let Some(nc) = iter.peek() {
                     if !(*nc).is_ascii_alphanumeric() {
-                        println!("next is not alphanumeric");
                         tokens.push(parse_single_character(c));
                     } else {
                         parser_state = if (*nc).is_ascii_alphabetic() {
+                            println!("Start parse literal");
                             ParserState::ParsingLiteral
                         } else if (*nc).is_ascii_digit() {
+                            println!("Start parse number");
                             ParserState::ParsingNumber
                         } else {
                             panic!("{:?} is neither alphabetic nor number", nc)
                         }
                     }
                 } else {
-                    println!("EOF");
                     tokens.push(parse_single_character(c));
                 }
             },
@@ -288,7 +294,13 @@ mod tests {
     #[test]
     fn parse_number_and_symbol() {
         let tokens = parse_program("4*32");
-        assert_eq!([Token::number(4), Token::asterisk(), Token::number(32)], &tokens[..]);        
+        assert_eq!([Token::number(4), Token::asterisk(), Token::number(32)], &tokens[..]);
+    }
+
+    #[test]
+    fn parse_symbol_and_number() {
+        let tokens = parse_program("=17");
+        assert_eq!([Token::equals(), Token::number(17)], &tokens[..]);
     }
 
     #[test]
