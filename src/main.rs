@@ -183,10 +183,12 @@ fn parse_program(program: &str) -> Vec<Token> {
     
             // Here we know for sure the next char is still part of the literal
             while let Some(c) = iter.next() {
-                literal.push(c);
+                if c != '"' {
+                    literal.push(c);
+                }
         
                 if let Some(nc) = iter.peek() {
-                    if !nc.is_ascii_alphanumeric() {
+                    if !nc.is_ascii_alphanumeric() && (parser_state != ParserState::ParsingString && *nc !='"') {
                         //parsing_literal = false;
                         break;
                     }
@@ -354,8 +356,21 @@ mod tests {
     }
 
     #[test]
+    fn parse_single_letter_as_string() {
+        let tokens = parse_program(r#""f""#);
+        assert_eq!([Token::string("f")], &tokens[..]);
+    }
+
+    #[test]
     fn parse_single_string() {
         let tokens = parse_program(r#""cafe""#);
         assert_eq!([Token::string("cafe")], &tokens[..]);
     }
+
+    #[test]
+    fn parse_string_with_spaces() {
+        let tokens = parse_program(r#""canada nice country""#);
+        assert_eq!([Token::string("canada nice country")], &tokens[..]);
+    }
+    
 }
