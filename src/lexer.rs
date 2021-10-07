@@ -3,11 +3,11 @@ use crate::tokens::Token;
 #[derive(Debug, PartialEq, Clone, Copy)]
 enum LexerState {
     Scanning,
-    ParsingLiteral,
-    ParsingNumber,
-    PreParsingString,
-    ParsingString,
-    PostParsingString,
+    Literal,
+    Number,
+    PreString,
+    String,
+    PostString,
 }
 
 fn lex_single_character(c: char) -> Token {
@@ -25,16 +25,16 @@ fn lex_single_character(c: char) -> Token {
 
 fn token_given_lexer_state(buf: &str, state: LexerState) -> Token {
     match state {
-        LexerState::ParsingLiteral => {
+        LexerState::Literal => {
             println!("parsed literal: {}", buf);
             Token::literal(&buf)
         }
-        LexerState::ParsingNumber => {
+        LexerState::Number => {
             let as_number = buf.parse::<i64>().unwrap();
             println!("parsed number: {}", as_number);
             Token::number(as_number)
         }
-        LexerState::ParsingString => {
+        LexerState::String => {
             println!("parsed string: {}", buf);
             Token::string(&buf)
         }
@@ -56,12 +56,12 @@ fn lex_program(program: &str) -> Vec<Token> {
 
         if matches!(
             parser_state,
-            LexerState::ParsingLiteral | LexerState::ParsingNumber | LexerState::ParsingString
+            LexerState::Literal | LexerState::Number | LexerState::String
         ) {
             let last_ch = last_char.expect("last char should not be empty");
             let mut literal = String::from("");
             // We know last and current must be literal chars
-            if parser_state != LexerState::ParsingString {
+            if parser_state != LexerState::String {
                 literal.push(last_ch);
                 println!("push (lch): {:?}", last_ch);
             }
@@ -73,8 +73,8 @@ fn lex_program(program: &str) -> Vec<Token> {
                     // Case when it's a 2-char length literal
                     if !nc.is_ascii_alphanumeric() {
                         tokens.push(token_given_lexer_state(&literal, parser_state));
-                        parser_state = if parser_state == LexerState::ParsingString {
-                            LexerState::PostParsingString
+                        parser_state = if parser_state == LexerState::String {
+                            LexerState::PostString
                         } else {
                             LexerState::Scanning
                         };
@@ -92,7 +92,7 @@ fn lex_program(program: &str) -> Vec<Token> {
 
                 if let Some(nc) = iter.peek() {
                     if !nc.is_ascii_alphanumeric()
-                        && (parser_state != LexerState::ParsingString && *nc != '"')
+                        && (parser_state != LexerState::String && *nc != '"')
                     {
                         //parsing_literal = false;
                         break;
@@ -101,9 +101,9 @@ fn lex_program(program: &str) -> Vec<Token> {
             }
 
             tokens.push(token_given_lexer_state(&literal, parser_state));
-            parser_state = if parser_state == LexerState::ParsingString {
+            parser_state = if parser_state == LexerState::String {
                 println!("fake parsing string");
-                LexerState::PostParsingString
+                LexerState::PostString
             } else {
                 LexerState::Scanning
             };
@@ -138,13 +138,13 @@ fn lex_program(program: &str) -> Vec<Token> {
             '"' => {
                 if matches!(
                     parser_state,
-                    LexerState::ParsingString | LexerState::PostParsingString
+                    LexerState::String | LexerState::PostString
                 ) {
                     println!("end of string");
                     parser_state = LexerState::Scanning;
                 } else {
                     println!("start of string");
-                    parser_state = LexerState::ParsingString;
+                    parser_state = LexerState::String;
                 }
             }
             c if c.is_ascii_alphanumeric() => {
@@ -152,15 +152,15 @@ fn lex_program(program: &str) -> Vec<Token> {
                     if !(*nc).is_ascii_alphanumeric() {
                         tokens.push(lex_single_character(c));
                     } else {
-                        parser_state = if parser_state == LexerState::PreParsingString {
+                        parser_state = if parser_state == LexerState::PreString {
                             println!("keep parsing string");
-                            LexerState::ParsingString
+                            LexerState::String
                         } else if (*nc).is_ascii_alphabetic() {
                             println!("Start parse literal");
-                            LexerState::ParsingLiteral
+                            LexerState::Literal
                         } else if (*nc).is_ascii_digit() {
                             println!("Start parse number");
-                            LexerState::ParsingNumber
+                            LexerState::Number
                         } else {
                             panic!("{:?} is neither alphabetic nor number", nc)
                         }
