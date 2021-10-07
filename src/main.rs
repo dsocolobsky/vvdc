@@ -1,105 +1,5 @@
-use std::fmt;
-
-#[derive(Debug, PartialEq)]
-enum TokenType {
-    Literal,
-    String,
-    Number,
-    Equals,
-    Plus,
-    Minus,
-    Asterisk,
-    Semicolon
-}
-
-#[derive(PartialEq)]
-enum LiteralType {
-    Identifier(String),
-    Symbol(String),
-    Number(i64),
-    String(String),
-}
-
-impl fmt::Debug for LiteralType {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match &*self {
-            LiteralType::Identifier(s) => write!(f, "i{:?}", s),
-            LiteralType::Symbol(s) => write!(f, "{:?}", s),
-            LiteralType::Number(n) => write!(f, "n{:?}", n),
-            LiteralType::String(s) => write!(f, "{:?}", s),
-        }
-    }
-}
-
-#[derive(PartialEq)]
-struct Token {
-    token_type: TokenType,
-    literal: Option<LiteralType>,
-}
-
-impl fmt::Debug for Token {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:?}", self.literal.as_ref().unwrap())
-    }
-}
-
-impl Token {
-    fn literal(literal: &str) -> Token {
-        Token {
-            token_type: TokenType::Literal,
-            literal: Some(LiteralType::Identifier(literal.to_string()))
-        }
-    }
-
-    fn number(n: i64) -> Token {
-        Token {
-            token_type: TokenType::Number, 
-            literal: Some(LiteralType::Number(n)),
-        }
-    }
-
-    fn string(string: &str) -> Token {
-        Token {
-            token_type: TokenType::String,
-            literal: Some(LiteralType::String(string.to_string()))
-        }
-    }
-
-    fn equals() -> Token {
-        Token {
-            token_type: TokenType::Equals,
-             literal: Some(LiteralType::Symbol("=".to_string()))
-        }
-    }
-
-    fn plus() -> Token {
-        Token {
-            token_type: TokenType::Plus,
-             literal: Some(LiteralType::Symbol("+".to_string()))
-        }
-    }
-
-    fn minus() -> Token {
-        Token {
-            token_type: TokenType::Minus,
-             literal: Some(LiteralType::Symbol("-".to_string()))
-        }
-    }
-
-    fn asterisk() -> Token {
-        Token {
-            token_type: TokenType::Asterisk,
-             literal: Some(LiteralType::Symbol("*".to_string()))
-        }
-    }
-
-    fn semicolon() -> Token {
-        Token {
-            token_type: TokenType::Semicolon,
-            literal: Some(LiteralType::Symbol(";".to_string()))
-        }
-    }
-}
+pub mod tokens;
+use crate::tokens::tokens::Token;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 enum ParserState {
@@ -129,17 +29,19 @@ fn token_given_parser_state(buf: &str, state: ParserState) -> Token {
         ParserState::ParsingLiteral => {
             println!("parsed literal: {}", buf);
             Token::literal(&buf)
-        },
+        }
         ParserState::ParsingNumber => {
             let as_number = buf.parse::<i64>().unwrap();
             println!("parsed number: {}", as_number);
             Token::number(as_number)
-        },
+        }
         ParserState::ParsingString => {
             println!("parsed string: {}", buf);
             Token::string(&buf)
         }
-        _ => {panic!("panic parsing {:?}", buf)},
+        _ => {
+            panic!("panic parsing {:?}", buf)
+        }
     }
 }
 
@@ -147,14 +49,16 @@ fn parse_program(program: &str) -> Vec<Token> {
     println!("Parsing: {:?}", program);
     let mut parser_state = ParserState::Scanning;
     let mut last_char: Option<char> = None;
-    let mut tokens:Vec<Token> = Vec::new();
+    let mut tokens: Vec<Token> = Vec::new();
     let mut iter = program.chars().peekable();
 
     while let Some(c) = iter.next() {
         println!("ch: {:?}", c);
 
-        if matches!(parser_state, 
-            ParserState::ParsingLiteral | ParserState::ParsingNumber | ParserState::ParsingString) {
+        if matches!(
+            parser_state,
+            ParserState::ParsingLiteral | ParserState::ParsingNumber | ParserState::ParsingString
+        ) {
             let last_ch = last_char.expect("last char should not be empty");
             let mut literal = String::from("");
             // We know last and current must be literal chars
@@ -177,18 +81,20 @@ fn parse_program(program: &str) -> Vec<Token> {
                         };
                         continue;
                     }
-                },
-                None => {}, // End of the program, skip and finish.
+                }
+                None => {} // End of the program, skip and finish.
             }
-    
+
             // Here we know for sure the next char is still part of the literal
             while let Some(c) = iter.next() {
                 if c != '"' {
                     literal.push(c);
                 }
-        
+
                 if let Some(nc) = iter.peek() {
-                    if !nc.is_ascii_alphanumeric() && (parser_state != ParserState::ParsingString && *nc !='"') {
+                    if !nc.is_ascii_alphanumeric()
+                        && (parser_state != ParserState::ParsingString && *nc != '"')
+                    {
                         //parsing_literal = false;
                         break;
                     }
@@ -207,22 +113,41 @@ fn parse_program(program: &str) -> Vec<Token> {
 
         last_char = Some(c);
         match c {
-            '=' => { println!("Equals"); tokens.push(Token::equals()); },
-            '+' => { println!("Plus"); tokens.push(Token::plus()); },
-            '-' => { println!("Minus"); tokens.push(Token::minus()); },
-            '*' => { println!("Asterisk"); tokens.push(Token::asterisk()); },
-            ';' => { println!("Semicolon"); tokens.push(Token::semicolon()); },
-            ' ' => {println!("space")},
+            '=' => {
+                println!("Equals");
+                tokens.push(Token::equals());
+            }
+            '+' => {
+                println!("Plus");
+                tokens.push(Token::plus());
+            }
+            '-' => {
+                println!("Minus");
+                tokens.push(Token::minus());
+            }
+            '*' => {
+                println!("Asterisk");
+                tokens.push(Token::asterisk());
+            }
+            ';' => {
+                println!("Semicolon");
+                tokens.push(Token::semicolon());
+            }
+            ' ' => {
+                println!("space")
+            }
             '"' => {
-                if matches!(parser_state, ParserState::ParsingString | ParserState::PostParsingString) {
+                if matches!(
+                    parser_state,
+                    ParserState::ParsingString | ParserState::PostParsingString
+                ) {
                     println!("end of string");
                     parser_state = ParserState::Scanning;
                 } else {
                     println!("start of string");
                     parser_state = ParserState::ParsingString;
                 }
-                
-            },
+            }
             c if c.is_ascii_alphanumeric() => {
                 if let Some(nc) = iter.peek() {
                     if !(*nc).is_ascii_alphanumeric() {
@@ -244,7 +169,7 @@ fn parse_program(program: &str) -> Vec<Token> {
                 } else {
                     tokens.push(parse_single_character(c));
                 }
-            },
+            }
             _ => panic!("unrecognized: '{}'", c),
         }
     }
@@ -281,15 +206,33 @@ mod tests {
     #[test]
     fn parse_several_tokens() {
         let tokens = parse_program("=+-*+=;");
-        assert_eq!([Token::equals(), Token::plus(), Token::minus(), Token::asterisk(), Token::plus(),
-        Token::equals(), Token::semicolon()], &tokens[..]);
+        assert_eq!(
+            [
+                Token::equals(),
+                Token::plus(),
+                Token::minus(),
+                Token::asterisk(),
+                Token::plus(),
+                Token::equals(),
+                Token::semicolon()
+            ],
+            &tokens[..]
+        );
     }
 
     #[test]
     fn parse_several_tokens_with_spaces() {
         let tokens = parse_program(" + -    ;; *");
-        assert_eq!([Token::plus(), Token::minus(), Token::semicolon(), 
-            Token::semicolon(), Token::asterisk()], &tokens[..]);
+        assert_eq!(
+            [
+                Token::plus(),
+                Token::minus(),
+                Token::semicolon(),
+                Token::semicolon(),
+                Token::asterisk()
+            ],
+            &tokens[..]
+        );
     }
 
     #[test]
@@ -319,8 +262,17 @@ mod tests {
     #[test]
     fn parse_complex_expression() {
         let tokens = parse_program("radio = pi*e;");
-        assert_eq!([Token::literal("radio"), Token::equals(), Token::literal("pi"),
-        Token::asterisk(), Token::literal("e"), Token::semicolon()], &tokens[..]);
+        assert_eq!(
+            [
+                Token::literal("radio"),
+                Token::equals(),
+                Token::literal("pi"),
+                Token::asterisk(),
+                Token::literal("e"),
+                Token::semicolon()
+            ],
+            &tokens[..]
+        );
     }
 
     #[test]
@@ -338,7 +290,10 @@ mod tests {
     #[test]
     fn parse_number_and_symbol() {
         let tokens = parse_program("4*32");
-        assert_eq!([Token::number(4), Token::asterisk(), Token::number(32)], &tokens[..]);
+        assert_eq!(
+            [Token::number(4), Token::asterisk(), Token::number(32)],
+            &tokens[..]
+        );
     }
 
     #[test]
@@ -350,9 +305,20 @@ mod tests {
     #[test]
     fn parse_complex_expression_with_numbers() {
         let tokens = parse_program("x = 4 * 35+2 1;");
-        assert_eq!([Token::literal("x"), Token::equals(), Token::number(4), Token::asterisk(),
-                    Token::number(35), Token::plus(), Token::number(2), Token::number(1), Token::semicolon()], 
-                    &tokens[..]);
+        assert_eq!(
+            [
+                Token::literal("x"),
+                Token::equals(),
+                Token::number(4),
+                Token::asterisk(),
+                Token::number(35),
+                Token::plus(),
+                Token::number(2),
+                Token::number(1),
+                Token::semicolon()
+            ],
+            &tokens[..]
+        );
     }
 
     #[test]
@@ -372,5 +338,4 @@ mod tests {
         let tokens = parse_program(r#""canada nice country""#);
         assert_eq!([Token::string("canada nice country")], &tokens[..]);
     }
-    
 }
