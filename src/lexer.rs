@@ -1,13 +1,12 @@
 use crate::tokens::Token;
+use crate::tokens::TokenType;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 enum LexerState {
     Scanning,
     Literal,
     Number,
-    PreString,
     String,
-    PostString,
 }
 
 struct Lexer {
@@ -15,15 +14,17 @@ struct Lexer {
     tokens: Vec<Token>,
     state: LexerState,
     current: usize,
+    current_char: char,
 }
 
 impl Lexer {
     fn new() -> Lexer {
-        Lexer {code: Vec::new(), tokens: Vec::new(), state: LexerState::Scanning, current: 0}
+        Lexer {code: Vec::new(), tokens: Vec::new(), state: LexerState::Scanning, 
+            current: 0, current_char: '\0'}
     }
 
     fn peek(&self) -> char {
-        if self.current + 1 >= self.code.len() {
+        if self.current >= self.code.len() {
             '\0'
         } else {
             self.code[self.current]
@@ -33,6 +34,7 @@ impl Lexer {
     fn next(&mut self) -> char {
         let nc = self.peek();
         self.current += 1;
+        self.current_char = nc;
         nc
     }
 
@@ -41,6 +43,7 @@ impl Lexer {
 
         while self.current < self.code.len() {
             let c = self.next();
+            println!("c = {}", c);
 
             match c {
                 ' ' => {},
@@ -57,209 +60,50 @@ impl Lexer {
         }
     }
 
-    fn scan_string(&mut self) {
+    fn scan_generic(&mut self, ttype: TokenType) {
         let mut literal = String::from("");
-
-        let mut c = self.next();
-        while c != '"' && self.current < self.code.len() {
-            literal.push(c);
-            c = self.next();
+        if ttype != TokenType::String {
+            literal.push(self.current_char);
         }
-        
-        self.tokens.push(Token::string(&literal));
+
+        let mut c = self.current_char;
+        while self.current <= self.code.len() {
+            c = self.peek();
+            if !c.is_ascii_alphanumeric() {
+                break
+            }
+            literal.push(c);
+            self.next();
+        }
+
+        let token = match ttype {
+            TokenType::Literal => Token::literal(&literal),
+            TokenType::String => Token::literal(&literal),
+            TokenType::Number => Token::number(literal.parse::<i64>().unwrap()),
+            _ => panic!("Should not be parsing {} as literal", literal),
+        };
+
+        self.tokens.push(token);
+    }
+
+    fn scan_string(&mut self) {
+        self.scan_generic(TokenType::String);
     }
 
     fn scan_literal(&mut self) {
-        let mut literal = String::from("");
-
-        let mut c = self.next();
-        while c != ' ' && self.current < self.code.len() {
-            literal.push(c);
-            c = self.next();
-        }
-        
-        self.tokens.push(Token::string(&literal));
+        self.scan_generic(TokenType::Literal);
     }
 
     fn scan_number(&mut self) {
-        let mut literal = String::from("");
-
-        let mut c = self.next();
-        while c != '"' && self.current < self.code.len() {
-            literal.push(c);
-            c = self.next();
-        }
-        
-        let n = literal.parse::<i64>().unwrap();
-        self.tokens.push(Token::number(n));
-    }
-}
-
-fn lex_single_character(c: char) -> Token {
-    if c.is_ascii_alphabetic() {
-        println!("Parsing single character");
-        Token::literal(&String::from(c))
-    } else if c.is_ascii_digit() {
-        println!("Parsing single digit");
-        let digit = (String::from(c)).parse::<i64>().unwrap();
-        Token::number(digit)
-    } else {
-        panic!("{:?} is neither numeric nor alphabetic!", c);
-    }
-}
-
-fn token_given_lexer_state(buf: &str, state: LexerState) -> Token {
-    match state {
-        LexerState::Literal => {
-            println!("parsed literal: {}", buf);
-            Token::literal(&buf)
-        }
-        LexerState::Number => {
-            let as_number = buf.parse::<i64>().unwrap();
-            println!("parsed number: {}", as_number);
-            Token::number(as_number)
-        }
-        LexerState::String => {
-            println!("parsed string: {}", buf);
-            Token::string(&buf)
-        }
-        _ => {
-            panic!("panic parsing {:?}", buf)
-        }
+        self.scan_generic(TokenType::Number);
     }
 }
 
 fn lex_program(program: &str) -> Vec<Token> {
-    println!("Parsing: {:?}", program);
-    let mut parser_state = LexerState::Scanning;
-    let mut last_char: Option<char> = None;
-    let mut tokens: Vec<Token> = Vec::new();
-    let mut iter = program.chars().peekable();
+    let mut lexer = Lexer::new();
+    lexer.scan(program);
 
-    let lexer = Lexer::new();
-
-    while let Some(c) = iter.next() {
-        println!("ch: {:?}", c);
-
-        if matches!(
-            parser_state,
-            LexerState::Literal | LexerState::Number | LexerState::String
-        ) {
-            let last_ch = last_char.expect("last char should not be empty");
-            let mut literal = String::from("");
-            // We know last and current must be literal chars
-            if parser_state != LexerState::String {
-                literal.push(last_ch);
-                println!("push (lch): {:?}", last_ch);
-            }
-            literal.push(c);
-            println!("push: {:?}", c);
-
-            match iter.peek() {
-                Some(nc) => {
-                    // Case when it's a 2-char length literal
-                    if !nc.is_ascii_alphanumeric() {
-                        tokens.push(token_given_lexer_state(&literal, parser_state));
-                        parser_state = if parser_state == LexerState::String {
-                            LexerState::PostString
-                        } else {
-                            LexerState::Scanning
-                        };
-                        continue;
-                    }
-                }
-                None => {} // End of the program, skip and finish.
-            }
-
-            // Here we know for sure the next char is still part of the literal
-            while let Some(c) = iter.next() {
-                if c != '"' {
-                    literal.push(c);
-                }
-
-                if let Some(nc) = iter.peek() {
-                    if !nc.is_ascii_alphanumeric()
-                        && (parser_state != LexerState::String && *nc != '"')
-                    {
-                        //parsing_literal = false;
-                        break;
-                    }
-                }
-            }
-
-            tokens.push(token_given_lexer_state(&literal, parser_state));
-            parser_state = if parser_state == LexerState::String {
-                println!("fake parsing string");
-                LexerState::PostString
-            } else {
-                LexerState::Scanning
-            };
-            continue;
-        }
-
-        last_char = Some(c);
-        match c {
-            '=' => {
-                println!("Equals");
-                tokens.push(Token::equals());
-            }
-            '+' => {
-                println!("Plus");
-                tokens.push(Token::plus());
-            }
-            '-' => {
-                println!("Minus");
-                tokens.push(Token::minus());
-            }
-            '*' => {
-                println!("Asterisk");
-                tokens.push(Token::asterisk());
-            }
-            ';' => {
-                println!("Semicolon");
-                tokens.push(Token::semicolon());
-            }
-            ' ' => {
-                println!("space")
-            }
-            '"' => {
-                if matches!(
-                    parser_state,
-                    LexerState::String | LexerState::PostString
-                ) {
-                    println!("end of string");
-                    parser_state = LexerState::Scanning;
-                } else {
-                    println!("start of string");
-                    parser_state = LexerState::String;
-                }
-            }
-            c if c.is_ascii_alphanumeric() => {
-                if let Some(nc) = iter.peek() {
-                    if !(*nc).is_ascii_alphanumeric() {
-                        tokens.push(lex_single_character(c));
-                    } else {
-                        parser_state = if parser_state == LexerState::PreString {
-                            println!("keep parsing string");
-                            LexerState::String
-                        } else if (*nc).is_ascii_alphabetic() {
-                            println!("Start parse literal");
-                            LexerState::Literal
-                        } else if (*nc).is_ascii_digit() {
-                            println!("Start parse number");
-                            LexerState::Number
-                        } else {
-                            panic!("{:?} is neither alphabetic nor number", nc)
-                        }
-                    }
-                } else {
-                    tokens.push(lex_single_character(c));
-                }
-            }
-            _ => panic!("unrecognized: '{}'", c),
-        }
-    }
-    return tokens;
+    return lexer.tokens;
 }
 
 #[cfg(test)]

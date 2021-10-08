@@ -2,7 +2,7 @@
 use std::fmt;
 
 #[derive(Debug, PartialEq)]
-enum TokenType {
+pub enum TokenType {
     Literal,
     String,
     Number,
@@ -24,7 +24,7 @@ enum LiteralType {
 impl fmt::Debug for LiteralType {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match &*self {
-            LiteralType::Identifier(s) => write!(f, "i{:?}", s),
+            LiteralType::Identifier(s) => write!(f, "l{:?}", s),
             LiteralType::Symbol(s) => write!(f, "{:?}", s),
             LiteralType::Number(n) => write!(f, "n{:?}", n),
             LiteralType::String(s) => write!(f, "{:?}", s),
