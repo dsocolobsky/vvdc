@@ -38,7 +38,7 @@ impl Lexer {
 
             match c {
                 ' ' => {},
-                '=' => self.tokens.push(Token::equals()),
+                '=' => self.tokens.push(Token::assignment()),
                 '+' => self.tokens.push(Token::plus()),
                 '-' => self.tokens.push(Token::minus()),
                 '*' => self.tokens.push(Token::asterisk()),
@@ -117,7 +117,7 @@ mod tests {
     #[test]
     fn token_equals() {
         let tokens = lex_program("=");
-        assert_eq!([Token::equals()], &tokens[..]);
+        assert_eq!([Token::assignment()], &tokens[..]);
     }
 
     #[test]
@@ -150,12 +150,12 @@ mod tests {
         let tokens = lex_program("=+-*+=;");
         assert_eq!(
             [
-                Token::equals(),
+                Token::assignment(),
                 Token::plus(),
                 Token::minus(),
                 Token::asterisk(),
                 Token::plus(),
-                Token::equals(),
+                Token::assignment(),
                 Token::semicolon()
             ],
             &tokens[..]
@@ -192,7 +192,7 @@ mod tests {
     #[test]
     fn literal_and_token() {
         let tokens = lex_program("mango=");
-        assert_eq!([Token::literal("mango"), Token::equals()], &tokens[..]);
+        assert_eq!([Token::literal("mango"), Token::assignment()], &tokens[..]);
     }
 
     #[test]
@@ -207,7 +207,7 @@ mod tests {
         assert_eq!(
             [
                 Token::literal("radio"),
-                Token::equals(),
+                Token::assignment(),
                 Token::literal("pi"),
                 Token::asterisk(),
                 Token::literal("e"),
@@ -241,7 +241,7 @@ mod tests {
     #[test]
     fn symbol_and_number() {
         let tokens = lex_program("=17");
-        assert_eq!([Token::equals(), Token::number(17)], &tokens[..]);
+        assert_eq!([Token::assignment(), Token::number(17)], &tokens[..]);
     }
 
     #[test]
@@ -250,7 +250,7 @@ mod tests {
         assert_eq!(
             [
                 Token::literal("x"),
-                Token::equals(),
+                Token::assignment(),
                 Token::number(4),
                 Token::asterisk(),
                 Token::number(35),
