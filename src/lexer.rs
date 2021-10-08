@@ -10,6 +10,91 @@ enum LexerState {
     PostString,
 }
 
+struct Lexer {
+    code: Vec<char>,
+    tokens: Vec<Token>,
+    state: LexerState,
+    current: usize,
+}
+
+impl Lexer {
+    fn new() -> Lexer {
+        Lexer {code: Vec::new(), tokens: Vec::new(), state: LexerState::Scanning, current: 0}
+    }
+
+    fn peek(&self) -> char {
+        if self.current + 1 >= self.code.len() {
+            '\0'
+        } else {
+            self.code[self.current]
+        }
+    }
+
+    fn next(&mut self) -> char {
+        let nc = self.peek();
+        self.current += 1;
+        nc
+    }
+
+    fn scan(&mut self, program: &str) {
+        self.code = program.chars().collect::<Vec<char>>();
+
+        while self.current < self.code.len() {
+            let c = self.next();
+
+            match c {
+                ' ' => {},
+                '=' => self.tokens.push(Token::equals()),
+                '+' => self.tokens.push(Token::plus()),
+                '-' => self.tokens.push(Token::minus()),
+                '*' => self.tokens.push(Token::asterisk()),
+                ';' => self.tokens.push(Token::semicolon()),
+                '"' => self.scan_string(),
+                c if c.is_ascii_alphabetic() => self.scan_literal(),
+                c if c.is_ascii_digit() => self.scan_number(),
+                _ => panic!("unrecognized char: '{}'", c),
+            }
+        }
+    }
+
+    fn scan_string(&mut self) {
+        let mut literal = String::from("");
+
+        let mut c = self.next();
+        while c != '"' && self.current < self.code.len() {
+            literal.push(c);
+            c = self.next();
+        }
+        
+        self.tokens.push(Token::string(&literal));
+    }
+
+    fn scan_literal(&mut self) {
+        let mut literal = String::from("");
+
+        let mut c = self.next();
+        while c != ' ' && self.current < self.code.len() {
+            literal.push(c);
+            c = self.next();
+        }
+        
+        self.tokens.push(Token::string(&literal));
+    }
+
+    fn scan_number(&mut self) {
+        let mut literal = String::from("");
+
+        let mut c = self.next();
+        while c != '"' && self.current < self.code.len() {
+            literal.push(c);
+            c = self.next();
+        }
+        
+        let n = literal.parse::<i64>().unwrap();
+        self.tokens.push(Token::number(n));
+    }
+}
+
 fn lex_single_character(c: char) -> Token {
     if c.is_ascii_alphabetic() {
         println!("Parsing single character");
@@ -50,6 +135,8 @@ fn lex_program(program: &str) -> Vec<Token> {
     let mut last_char: Option<char> = None;
     let mut tokens: Vec<Token> = Vec::new();
     let mut iter = program.chars().peekable();
+
+    let lexer = Lexer::new();
 
     while let Some(c) = iter.next() {
         println!("ch: {:?}", c);
