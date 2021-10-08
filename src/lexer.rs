@@ -38,18 +38,44 @@ impl Lexer {
 
             match c {
                 ' ' => {},
-                '=' => {
-                        if self.peek() == '=' {
-                            self.tokens.push(Token::equals());
-                            self.next();
-                        }  else {
-                            self.tokens.push(Token::assignment());
-                        }
-                    },
                 '+' => self.tokens.push(Token::plus()),
                 '-' => self.tokens.push(Token::minus()),
                 '*' => self.tokens.push(Token::asterisk()),
                 ';' => self.tokens.push(Token::semicolon()),
+                '(' => self.tokens.push(Token::lparen()),
+                ')' => self.tokens.push(Token::rparen()),
+                '=' => {
+                    if self.peek() == '=' {
+                        self.tokens.push(Token::equals());
+                        self.next();
+                    }  else {
+                        self.tokens.push(Token::assignment());
+                    }
+                },
+                '!' => {
+                    if self.peek() == '=' {
+                        self.tokens.push(Token::unequal());
+                        self.next();
+                    } else {
+                        self.tokens.push(Token::bang());
+                    }
+                },
+                '<' => {
+                    if self.peek() == '=' {
+                        self.tokens.push(Token::lteq());
+                        self.next();
+                    } else {
+                        self.tokens.push(Token::lt());
+                    }
+                },
+                '>' => {
+                    if self.peek() == '=' {
+                        self.tokens.push(Token::gteq());
+                        self.next();
+                    } else {
+                        self.tokens.push(Token::gt());
+                    }
+                },
                 '"' => self.scan_string(),
                 c if c.is_ascii_alphabetic() => self.scan_literal(),
                 c if c.is_ascii_digit() => self.scan_number(),
@@ -308,3 +334,21 @@ mod tests {
         let tokens = lex_program(r#""canada nice country""#);
         assert_eq!([Token::string("canada nice country")], &tokens[..]);
     }}
+
+    #[test]
+    fn comparison_operators() {
+        let tokens = lex_program("4 < 19>2 >= !1 <= 1!=10");
+        assert_eq!([
+            Token::number(4), Token::lt(), Token::number(19), Token::gt(), 
+            Token::number(2), Token::gteq(), Token::bang(), Token::number(1), Token::lteq(),
+            Token::number(1), Token::unequal() ,Token::number(10)
+            ], &tokens[..]);
+    }
+
+    #[test]
+    fn parentheses() {
+        let tokens = lex_program("(2) == !((4))");
+        assert_eq!([Token::lparen(), Token::number(2), Token::rparen(), Token::equals(),
+            Token::bang(), Token::lparen(), Token::lparen(), Token::number(4), Token::rparen(),
+            Token::rparen()], &tokens[..]);
+    }
