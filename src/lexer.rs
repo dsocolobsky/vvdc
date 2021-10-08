@@ -37,7 +37,7 @@ impl Lexer {
             println!("c = {}", c);
 
             match c {
-                ' ' => {},
+                c if c.is_whitespace() => {},
                 '+' => self.tokens.push(Token::plus()),
                 '-' => self.tokens.push(Token::minus()),
                 '*' => self.tokens.push(Token::asterisk()),
@@ -351,4 +351,11 @@ mod tests {
         assert_eq!([Token::lparen(), Token::number(2), Token::rparen(), Token::equals(),
             Token::bang(), Token::lparen(), Token::lparen(), Token::number(4), Token::rparen(),
             Token::rparen()], &tokens[..]);
+    }
+
+    #[test]
+    fn newlines() {
+        let tokens = lex_program("3*\n2 + \n 3;");
+        assert_eq!([Token::number(3), Token::asterisk(), Token::number(2), Token::plus(),
+            Token::number(3), Token::semicolon()], &tokens[..]);
     }
