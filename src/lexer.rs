@@ -186,9 +186,27 @@ mod tests {
     }
 
     #[test]
-    fn semicolon() {
+    fn token_equals() {
         let tokens = lex_program("=");
         assert_eq!([Token::equals()], &tokens[..]);
+    }
+
+    #[test]
+    fn token_plus() {
+        let tokens = lex_program("+");
+        assert_eq!([Token::plus()], &tokens[..]);
+    }
+
+    #[test]
+    fn token_minus() {
+        let tokens = lex_program("-");
+        assert_eq!([Token::minus()], &tokens[..]);
+    }
+
+    #[test]
+    fn token_asterisk() {
+        let tokens = lex_program("*");
+        assert_eq!([Token::asterisk()], &tokens[..]);
     }
 
     #[test]
