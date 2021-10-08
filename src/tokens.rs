@@ -11,6 +11,7 @@ pub enum TokenType {
     Minus,
     Asterisk,
     Semicolon,
+    Equals
 }
 
 #[derive(PartialEq)]
@@ -98,6 +99,13 @@ impl Token {
         Token {
             token_type: TokenType::Semicolon,
             literal: Some(LiteralType::Symbol(";".to_string())),
+        }
+    }
+
+    pub fn equals() -> Token {
+        Token {
+            token_type: TokenType::Equals,
+            literal: Some(LiteralType::Symbol("==".to_string())),
         }
     }
 }

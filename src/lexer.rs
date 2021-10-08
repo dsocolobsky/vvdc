@@ -38,7 +38,14 @@ impl Lexer {
 
             match c {
                 ' ' => {},
-                '=' => self.tokens.push(Token::assignment()),
+                '=' => {
+                        if self.peek() == '=' {
+                            self.tokens.push(Token::equals());
+                            self.next();
+                        }  else {
+                            self.tokens.push(Token::assignment());
+                        }
+                    },
                 '+' => self.tokens.push(Token::plus()),
                 '-' => self.tokens.push(Token::minus()),
                 '*' => self.tokens.push(Token::asterisk()),
@@ -115,7 +122,7 @@ mod tests {
     }
 
     #[test]
-    fn token_equals() {
+    fn token_assignment() {
         let tokens = lex_program("=");
         assert_eq!([Token::assignment()], &tokens[..]);
     }
@@ -136,6 +143,12 @@ mod tests {
     fn token_asterisk() {
         let tokens = lex_program("*");
         assert_eq!([Token::asterisk()], &tokens[..]);
+    }
+
+    #[test]
+    fn token_equals() {
+        let tokens = lex_program("==");
+        assert_eq!([Token::equals()], &tokens[..]);
     }
 
     #[test]
@@ -212,6 +225,21 @@ mod tests {
                 Token::asterisk(),
                 Token::literal("e"),
                 Token::semicolon()
+            ],
+            &tokens[..]
+        );
+    }
+
+    #[test]
+    fn complex_expression_with_equality() {
+        let tokens = lex_program(r#"8==ocho == "ocho""#);
+        assert_eq!(
+            [
+                Token::number(8),
+                Token::equals(),
+                Token::literal("ocho"),
+                Token::equals(),
+                Token::string("ocho"),
             ],
             &tokens[..]
         );
