@@ -1,25 +1,16 @@
 use crate::tokens::Token;
 use crate::tokens::TokenType;
 
-#[derive(Debug, PartialEq, Clone, Copy)]
-enum LexerState {
-    Scanning,
-    Literal,
-    Number,
-    String,
-}
-
 struct Lexer {
     code: Vec<char>,
     tokens: Vec<Token>,
-    state: LexerState,
     current: usize,
     current_char: char,
 }
 
 impl Lexer {
     fn new() -> Lexer {
-        Lexer {code: Vec::new(), tokens: Vec::new(), state: LexerState::Scanning, 
+        Lexer {code: Vec::new(), tokens: Vec::new(), 
             current: 0, current_char: '\0'}
     }
 
@@ -61,15 +52,22 @@ impl Lexer {
     }
 
     fn scan_generic(&mut self, ttype: TokenType) {
+        println!("Scanning string");
         let mut literal = String::from("");
         if ttype != TokenType::String {
             literal.push(self.current_char);
         }
+        println!("Initial = {}", literal);
 
         let mut c = self.current_char;
+        println!("Current char = {}", c);
         while self.current <= self.code.len() {
             c = self.peek();
-            if !c.is_ascii_alphanumeric() {
+            println!("peeked = {}", c);
+            if !c.is_ascii_alphanumeric() && !(ttype == TokenType::String && c.is_whitespace()) {
+                if c == '"' && ttype == TokenType::String {
+                    self.next();
+                }
                 break
             }
             literal.push(c);
@@ -78,7 +76,7 @@ impl Lexer {
 
         let token = match ttype {
             TokenType::Literal => Token::literal(&literal),
-            TokenType::String => Token::literal(&literal),
+            TokenType::String => Token::string(&literal),
             TokenType::Number => Token::number(literal.parse::<i64>().unwrap()),
             _ => panic!("Should not be parsing {} as literal", literal),
         };
