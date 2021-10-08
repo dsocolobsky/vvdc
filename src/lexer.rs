@@ -44,6 +44,8 @@ impl Lexer {
                 ';' => self.tokens.push(Token::semicolon()),
                 '(' => self.tokens.push(Token::lparen()),
                 ')' => self.tokens.push(Token::rparen()),
+                '{' => self.tokens.push(Token::lbrace()),
+                '}' => self.tokens.push(Token::rbrace()),
                 '=' => {
                     if self.peek() == '=' {
                         self.tokens.push(Token::equals());
@@ -351,6 +353,13 @@ mod tests {
         assert_eq!([Token::lparen(), Token::number(2), Token::rparen(), Token::equals(),
             Token::bang(), Token::lparen(), Token::lparen(), Token::number(4), Token::rparen(),
             Token::rparen()], &tokens[..]);
+    }
+
+    #[test]
+    fn braces() {
+        let tokens = lex_program("fn{{}}");
+        assert_eq!([Token::literal("fn"), Token::lbrace(), Token::lbrace(),
+        Token::rbrace(), Token::rbrace()], &tokens[..]);
     }
 
     #[test]
