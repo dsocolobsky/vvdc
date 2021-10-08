@@ -11,7 +11,15 @@ pub enum TokenType {
     Minus,
     Asterisk,
     Semicolon,
-    Equals
+    Bang,
+    Equals,
+    Unequal,
+    Lt,
+    Gt,
+    Lteq,
+    Gteq,
+    Lparen,
+    Rparen,
 }
 
 #[derive(PartialEq)]
@@ -106,6 +114,62 @@ impl Token {
         Token {
             token_type: TokenType::Equals,
             literal: Some(LiteralType::Symbol("==".to_string())),
+        }
+    }
+
+    pub fn bang() -> Token {
+        Token {
+            token_type: TokenType::Bang,
+            literal: Some(LiteralType::Symbol("!".to_string())),
+        }
+    }
+
+    pub fn unequal() -> Token {
+        Token {
+            token_type: TokenType::Unequal,
+            literal: Some(LiteralType::Symbol("!=".to_string())),
+        }
+    }
+
+    pub fn lt() -> Token {
+        Token {
+            token_type: TokenType::Lt,
+            literal: Some(LiteralType::Symbol("<".to_string())),
+        }
+    }
+
+    pub fn gt() -> Token {
+        Token {
+            token_type: TokenType::Gt,
+            literal: Some(LiteralType::Symbol(">".to_string())),
+        }
+    }
+
+    pub fn lteq() -> Token {
+        Token {
+            token_type: TokenType::Lteq,
+            literal: Some(LiteralType::Symbol("<=".to_string())),
+        }
+    }
+
+    pub fn gteq() -> Token {
+        Token {
+            token_type: TokenType::Gteq,
+            literal: Some(LiteralType::Symbol(">=".to_string())),
+        }
+    }
+
+    pub fn lparen() -> Token {
+        Token {
+            token_type: TokenType::Gteq,
+            literal: Some(LiteralType::Symbol("(".to_string())),
+        }
+    }
+
+    pub fn rparen() -> Token {
+        Token {
+            token_type: TokenType::Gteq,
+            literal: Some(LiteralType::Symbol(")".to_string())),
         }
     }
 }
