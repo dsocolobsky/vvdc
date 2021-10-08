@@ -77,115 +77,76 @@ impl Token {
         }
     }
 
-    pub fn assignment() -> Token {
+    fn create_symbol(ttype: TokenType, literal: &str) -> Token {
         Token {
-            token_type: TokenType::Assignment,
-            literal: Some(LiteralType::Symbol("=".to_string())),
+            token_type: ttype,
+            literal: Some(LiteralType::Symbol(literal.to_string())),
         }
     }
 
     pub fn plus() -> Token {
-        Token {
-            token_type: TokenType::Plus,
-            literal: Some(LiteralType::Symbol("+".to_string())),
-        }
+        Token::create_symbol(TokenType::Plus, "+")
     }
 
     pub fn minus() -> Token {
-        Token {
-            token_type: TokenType::Minus,
-            literal: Some(LiteralType::Symbol("-".to_string())),
-        }
+        Token::create_symbol(TokenType::Minus, "-")
     }
 
     pub fn asterisk() -> Token {
-        Token {
-            token_type: TokenType::Asterisk,
-            literal: Some(LiteralType::Symbol("*".to_string())),
-        }
+        Token::create_symbol(TokenType::Asterisk, "*")
     }
 
     pub fn semicolon() -> Token {
-        Token {
-            token_type: TokenType::Semicolon,
-            literal: Some(LiteralType::Symbol(";".to_string())),
-        }
+        Token::create_symbol(TokenType::Semicolon, ";")
+    }
+
+    pub fn assignment() -> Token {
+        Token::create_symbol(TokenType::Assignment, "=")
     }
 
     pub fn equals() -> Token {
-        Token {
-            token_type: TokenType::Equals,
-            literal: Some(LiteralType::Symbol("==".to_string())),
-        }
+        Token::create_symbol(TokenType::Equals, "==")
     }
 
     pub fn bang() -> Token {
-        Token {
-            token_type: TokenType::Bang,
-            literal: Some(LiteralType::Symbol("!".to_string())),
-        }
+        Token::create_symbol(TokenType::Bang, "!")
     }
 
     pub fn unequal() -> Token {
-        Token {
-            token_type: TokenType::Unequal,
-            literal: Some(LiteralType::Symbol("!=".to_string())),
-        }
+        Token::create_symbol(TokenType::Unequal, "!=")
     }
 
     pub fn lt() -> Token {
-        Token {
-            token_type: TokenType::Lt,
-            literal: Some(LiteralType::Symbol("<".to_string())),
-        }
+        Token::create_symbol(TokenType::Lt, "<")
     }
 
     pub fn gt() -> Token {
-        Token {
-            token_type: TokenType::Gt,
-            literal: Some(LiteralType::Symbol(">".to_string())),
-        }
+        Token::create_symbol(TokenType::Gt, ">")
     }
 
     pub fn lteq() -> Token {
-        Token {
-            token_type: TokenType::Lteq,
-            literal: Some(LiteralType::Symbol("<=".to_string())),
-        }
+        Token::create_symbol(TokenType::Lteq, "<=")
     }
 
     pub fn gteq() -> Token {
-        Token {
-            token_type: TokenType::Gteq,
-            literal: Some(LiteralType::Symbol(">=".to_string())),
-        }
+        Token::create_symbol(TokenType::Gteq, ">=")
     }
 
     pub fn lparen() -> Token {
-        Token {
-            token_type: TokenType::Gteq,
-            literal: Some(LiteralType::Symbol("(".to_string())),
-        }
+        Token::create_symbol(TokenType::Lparen, "(")
     }
 
     pub fn rparen() -> Token {
-        Token {
-            token_type: TokenType::Gteq,
-            literal: Some(LiteralType::Symbol(")".to_string())),
-        }
+        Token::create_symbol(TokenType::Rparen, ")")
     }
 
     pub fn lbrace() -> Token {
-        Token {
-            token_type: TokenType::Lbrace,
-            literal: Some(LiteralType::Symbol("{".to_string())),
-        }
+        Token::create_symbol(TokenType::Lbrace, "{")
     }
 
     pub fn rbrace() -> Token {
-        Token {
-            token_type: TokenType::Rbrace,
-            literal: Some(LiteralType::Symbol("}".to_string())),
-        }
+        Token::create_symbol(TokenType::Rbrace, "}")
     }
+
+    
 }
