@@ -6,7 +6,7 @@ pub enum TokenType {
     Literal,
     String,
     Number,
-    Equals,
+    Assignment,
     Plus,
     Minus,
     Asterisk,
@@ -66,9 +66,9 @@ impl Token {
         }
     }
 
-    pub fn equals() -> Token {
+    pub fn assignment() -> Token {
         Token {
-            token_type: TokenType::Equals,
+            token_type: TokenType::Assignment,
             literal: Some(LiteralType::Symbol("=".to_string())),
         }
     }
