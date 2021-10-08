@@ -20,6 +20,8 @@ pub enum TokenType {
     Gteq,
     Lparen,
     Rparen,
+    Lbrace,
+    Rbrace,
 }
 
 #[derive(PartialEq)]
@@ -170,6 +172,20 @@ impl Token {
         Token {
             token_type: TokenType::Gteq,
             literal: Some(LiteralType::Symbol(")".to_string())),
+        }
+    }
+
+    pub fn lbrace() -> Token {
+        Token {
+            token_type: TokenType::Lbrace,
+            literal: Some(LiteralType::Symbol("{".to_string())),
+        }
+    }
+
+    pub fn rbrace() -> Token {
+        Token {
+            token_type: TokenType::Rbrace,
+            literal: Some(LiteralType::Symbol("}".to_string())),
         }
     }
 }
