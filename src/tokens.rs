@@ -55,7 +55,7 @@ pub struct Token {
 
 impl fmt::Debug for Token {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:?}", self.token_type)
+        write!(f, "{:?}", self.literal.as_ref().unwrap())
     }
 }
 

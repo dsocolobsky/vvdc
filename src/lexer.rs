@@ -91,9 +91,8 @@ impl Lexer {
             literal.push(self.current_char);
         }
 
-        let mut c = self.current_char;
         while self.current <= self.code.len() {
-            c = self.peek();
+            let c = self.peek();
             if !c.is_ascii_alphanumeric() && !(ttype == TokenType::String && c.is_whitespace()) {
                 if c == '"' && ttype == TokenType::String {
                     self.next();
