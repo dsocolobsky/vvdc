@@ -1,8 +1,15 @@
 pub mod tokens;
 pub mod lexer;
+use std::fs;
 
 fn main() {
-    println!("Hello, world!");
+    let code = fs::read_to_string("test.dl").expect("Unable to read file");
+    println!("{}", code);
+    println!("================================");
+    let tokens = lexer::lex_program(&code);
+    println!("{:?}", &tokens);
+    println!("\n");
+    println!("\n");
 }
 
 mod test {

@@ -39,10 +39,10 @@ pub enum LiteralType {
 impl fmt::Debug for LiteralType {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match &*self {
-            LiteralType::Identifier(s) => write!(f, "l{:?}", s),
-            LiteralType::Symbol(s) => write!(f, "{:?}", s),
-            LiteralType::Number(n) => write!(f, "n{:?}", n),
-            LiteralType::String(s) => write!(f, "{:?}", s),
+            LiteralType::Identifier(s) => write!(f, "{}", s),
+            LiteralType::Symbol(s) => write!(f, "{}", s),
+            LiteralType::Number(n) => write!(f, "{}", n),
+            LiteralType::String(s) => write!(f, r#""{}""#, s),
         }
     }
 }
@@ -55,7 +55,7 @@ pub struct Token {
 
 impl fmt::Debug for Token {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:?}", self.literal.as_ref().unwrap())
+        write!(f, "{:?}", self.token_type)
     }
 }
 
@@ -165,5 +165,22 @@ impl Token {
         } else {
             None
         }
-    }    
+    }
+
+    pub fn keyword_if() -> Token {
+        Token::keyword("if").unwrap()
+    }
+
+    pub fn keyword_print() -> Token {
+        Token::keyword("print").unwrap()
+    }
+
+    pub fn keyword_return() -> Token {
+        Token::keyword("return").unwrap()
+    }
+
+    pub fn keyword_while() -> Token {
+        Token::keyword("while").unwrap()
+    }
+    
 }

@@ -1,0 +1,11 @@
+square(x) {
+    return x * x;
+}
+
+main() {
+    y = square(4);
+    while y > 12 {
+        print("answer is " y);
+    }
+    return 0;
+}

@@ -34,7 +34,6 @@ impl Lexer {
 
         while self.current < self.code.len() {
             let c = self.next();
-            println!("c = {}", c);
 
             match c {
                 c if c.is_whitespace() => {},
@@ -87,18 +86,14 @@ impl Lexer {
     }
 
     fn scan_generic(&mut self, ttype: TokenType) {
-        println!("Scanning string");
         let mut literal = String::from("");
         if ttype != TokenType::String {
             literal.push(self.current_char);
         }
-        println!("Initial = {}", literal);
 
         let mut c = self.current_char;
-        println!("Current char = {}", c);
         while self.current <= self.code.len() {
             c = self.peek();
-            println!("peeked = {}", c);
             if !c.is_ascii_alphanumeric() && !(ttype == TokenType::String && c.is_whitespace()) {
                 if c == '"' && ttype == TokenType::String {
                     self.next();
@@ -139,7 +134,7 @@ impl Lexer {
     }
 }
 
-fn lex_program(program: &str) -> Vec<Token> {
+pub fn lex_program(program: &str) -> Vec<Token> {
     let mut lexer = Lexer::new();
     lexer.scan(program);
 
@@ -382,4 +377,32 @@ mod tests {
         let tokens: Vec<TokenType> = tokens.into_iter().map(|token| {token.token_type}).collect();
         assert_eq!([TokenType::KeywordIf, TokenType::KeywordPrint, TokenType::KeywordWhile, TokenType::KeywordReturn],
             &tokens[..]);
+    }
+
+    #[test]
+    fn sample_program() {
+        let tokens = lex_program(
+            r#"
+            square(x) {
+                return x * x;
+            }
+
+            main() {
+                y = square(4);
+                while y > 12 {
+                    print("answer is " y);
+                }
+                return 0;
+            }
+            "#);
+
+        assert_eq!([Token::literal("square"), Token::lparen(), Token::literal("x"), Token::rparen(),
+                    Token::lbrace(), Token::keyword_return(), Token::literal("x"), Token::asterisk(),
+                    Token::literal("x"), Token::semicolon(), Token::rbrace(), Token::literal("main"), Token::lparen(),
+                    Token::rparen(), Token::lbrace(), Token::literal("y"), Token::assignment(),
+                    Token::literal("square"), Token::lparen(), Token::number(4), Token::rparen(),
+                    Token::semicolon(), Token::keyword_while(), Token::literal("y"), Token::gt(),
+                    Token::number(12), Token::lbrace(), Token::keyword_print(), Token::lparen(),
+                    Token::string("answer is "), Token::literal("y"), Token::rparen(), Token::semicolon(), Token::rbrace(),
+                    Token::keyword_return(), Token::number(0), Token::semicolon(), Token::rbrace()], &tokens[..]);
     }
