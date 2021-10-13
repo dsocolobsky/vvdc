@@ -22,10 +22,14 @@ pub enum TokenType {
     Rparen,
     Lbrace,
     Rbrace,
+    KeywordIf,
+    KeywordPrint,
+    KeywordReturn,
+    KeywordWhile,
 }
 
 #[derive(PartialEq)]
-enum LiteralType {
+pub enum LiteralType {
     Identifier(String),
     Symbol(String),
     Number(i64),
@@ -45,8 +49,8 @@ impl fmt::Debug for LiteralType {
 
 #[derive(PartialEq)]
 pub struct Token {
-    token_type: TokenType,
-    literal: Option<LiteralType>,
+    pub token_type: TokenType,
+    pub literal: Option<LiteralType>,
 }
 
 impl fmt::Debug for Token {
@@ -148,5 +152,18 @@ impl Token {
         Token::create_symbol(TokenType::Rbrace, "}")
     }
 
-    
+    pub fn keyword(key: &str) -> Option<Token> {
+        let ttype = match &*key {
+            "if" => Some(TokenType::KeywordIf),
+            "print" => Some(TokenType::KeywordPrint),
+            "return" => Some(TokenType::KeywordReturn),
+            "while" => Some(TokenType::KeywordWhile),
+            &_ => None,
+        };
+        if let Some(t) = ttype {
+            Some(Token{token_type: t, literal: Some(LiteralType::String(key.to_string()))})
+        } else {
+            None
+        }
+    }    
 }

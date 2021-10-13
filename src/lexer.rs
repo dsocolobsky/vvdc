@@ -110,7 +110,14 @@ impl Lexer {
         }
 
         let token = match ttype {
-            TokenType::Literal => Token::literal(&literal),
+            TokenType::Literal => {
+                let maybe_token: Option<Token> = Token::keyword(&literal);
+                if let Some(tk) = maybe_token {
+                    tk
+                } else {
+                    Token::literal(&literal)
+                }
+            },
             TokenType::String => Token::string(&literal),
             TokenType::Number => Token::number(literal.parse::<i64>().unwrap()),
             _ => panic!("Should not be parsing {} as literal", literal),
@@ -367,4 +374,12 @@ mod tests {
         let tokens = lex_program("3*\n2 + \n 3;");
         assert_eq!([Token::number(3), Token::asterisk(), Token::number(2), Token::plus(),
             Token::number(3), Token::semicolon()], &tokens[..]);
+    }
+
+    #[test]
+    fn keywords() {
+        let tokens: Vec<Token> = lex_program("if print while return");
+        let tokens: Vec<TokenType> = tokens.into_iter().map(|token| {token.token_type}).collect();
+        assert_eq!([TokenType::KeywordIf, TokenType::KeywordPrint, TokenType::KeywordWhile, TokenType::KeywordReturn],
+            &tokens[..]);
     }
