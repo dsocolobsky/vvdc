@@ -372,9 +372,9 @@ mod tests {
 
     #[test]
     fn keywords() {
-        let tokens: Vec<Token> = lex_program("if print while return");
+        let tokens: Vec<Token> = lex_program("if print while return let");
         let tokens: Vec<TokenType> = tokens.into_iter().map(|token| {token.token_type}).collect();
-        assert_eq!([TokenType::KeywordIf, TokenType::KeywordPrint, TokenType::KeywordWhile, TokenType::KeywordReturn],
+        assert_eq!([TokenType::KeywordIf, TokenType::KeywordPrint, TokenType::KeywordWhile, TokenType::KeywordReturn, TokenType::KeywordLet],
             &tokens[..]);
     }
 
@@ -387,7 +387,7 @@ mod tests {
             }
 
             main() {
-                y = square(4);
+                let y = square(4);
                 while y > 12 {
                     print("answer is " y);
                 }
@@ -398,7 +398,7 @@ mod tests {
         assert_eq!([Token::literal("square"), Token::lparen(), Token::literal("x"), Token::rparen(),
                     Token::lbrace(), Token::keyword_return(), Token::literal("x"), Token::asterisk(),
                     Token::literal("x"), Token::semicolon(), Token::rbrace(), Token::literal("main"), Token::lparen(),
-                    Token::rparen(), Token::lbrace(), Token::literal("y"), Token::assignment(),
+                    Token::rparen(), Token::lbrace(), Token::keyword_let(), Token::literal("y"), Token::assignment(),
                     Token::literal("square"), Token::lparen(), Token::number(4), Token::rparen(),
                     Token::semicolon(), Token::keyword_while(), Token::literal("y"), Token::gt(),
                     Token::number(12), Token::lbrace(), Token::keyword_print(), Token::lparen(),
