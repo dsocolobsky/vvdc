@@ -18,3 +18,6 @@ mod test {
         
     }
 }
+
+#[cfg(test)]
+mod lexer_test;
