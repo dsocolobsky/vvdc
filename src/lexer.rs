@@ -395,13 +395,14 @@ mod tests {
             }
             "#);
 
-        assert_eq!([Token::keyword_fn(), Token::literal("square"), Token::lparen(), Token::literal("x"), Token::rparen(),
-                    Token::lbrace(), Token::keyword_return(), Token::literal("x"), Token::asterisk(),
-                    Token::literal("x"), Token::semicolon(), Token::rbrace(), Token::keyword_fn(), Token::literal("main"), Token::lparen(),
-                    Token::rparen(), Token::lbrace(), Token::keyword_let(), Token::literal("y"), Token::assignment(),
-                    Token::literal("square"), Token::lparen(), Token::number(4), Token::rparen(),
-                    Token::semicolon(), Token::keyword_while(), Token::literal("y"), Token::gt(),
-                    Token::number(12), Token::lbrace(), Token::keyword_print(), Token::lparen(),
-                    Token::string("answer is "), Token::literal("y"), Token::rparen(), Token::semicolon(), Token::rbrace(),
-                    Token::keyword_return(), Token::number(0), Token::semicolon(), Token::rbrace()], &tokens[..]);
+        assert_eq!(
+            [Token::keyword_fn(), Token::literal("square"), Token::lparen(), Token::literal("x"), Token::rparen(),
+            Token::lbrace(), Token::keyword_return(), Token::literal("x"), Token::asterisk(),
+            Token::literal("x"), Token::semicolon(), Token::rbrace(), Token::keyword_fn(), Token::literal("main"), Token::lparen(),
+            Token::rparen(), Token::lbrace(), Token::keyword_let(), Token::literal("y"), Token::assignment(),
+            Token::literal("square"), Token::lparen(), Token::number(4), Token::rparen(),
+            Token::semicolon(), Token::keyword_while(), Token::literal("y"), Token::gt(),
+            Token::number(12), Token::lbrace(), Token::keyword_print(), Token::lparen(),
+            Token::string("answer is "), Token::literal("y"), Token::rparen(), Token::semicolon(), Token::rbrace(),
+            Token::keyword_return(), Token::number(0), Token::semicolon(), Token::rbrace()], &tokens[..]);
     }

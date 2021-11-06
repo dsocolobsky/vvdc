@@ -3,31 +3,12 @@ use std::fmt;
 
 #[derive(Debug, PartialEq)]
 pub enum TokenType {
-    Literal,
-    String,
-    Number,
-    Assignment,
-    Plus,
-    Minus,
-    Asterisk,
+    Literal, String, Number,
+    Assignment, Plus, Minus, Asterisk,
     Semicolon,
-    Bang,
-    Equals,
-    Unequal,
-    Lt,
-    Gt,
-    Lteq,
-    Gteq,
-    Lparen,
-    Rparen,
-    Lbrace,
-    Rbrace,
-    KeywordIf,
-    KeywordPrint,
-    KeywordReturn,
-    KeywordWhile,
-    KeywordLet,
-    KeywordFn,
+    Bang, Equals, Unequal, Lt, Gt, Lteq, Gteq,
+    Lparen, Rparen, Lbrace, Rbrace,
+    KeywordIf, KeywordPrint, KeywordReturn, KeywordWhile, KeywordLet, KeywordFn,
 }
 
 #[derive(PartialEq)]
