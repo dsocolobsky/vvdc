@@ -244,6 +244,12 @@ mod tests {
     }
 
     #[test]
+    fn literal_number_and_string() {
+        let tokens = lex_program(r#" banana 1337 "kiwi" "#);
+        assert_eq!([Token::literal("banana"), Token::number(1337), Token::string("kiwi")], &tokens[..]);
+    }
+
+    #[test]
     fn complex_expression() {
         let tokens = lex_program("radio = pi*e;");
         assert_eq!(
