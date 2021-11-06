@@ -104,22 +104,13 @@ impl Lexer {
         }
 
         let token = match ttype {
-            TokenType::Literal => self.keyword_or_literal(&literal),
+            TokenType::Literal => Token::keyword_or_literal(&literal),
             TokenType::String => Token::string(&literal),
             TokenType::Number => Token::number(literal.parse::<i64>().unwrap()),
             _ => panic!("Should not be parsing {} as literal", literal),
         };
 
         self.tokens.push(token);
-    }
-
-    fn keyword_or_literal(&mut self, literal: &str) -> Token {
-        let maybe_token: Option<Token> = Token::keyword(literal);
-        if let Some(tk) = maybe_token {
-            tk
-        } else {
-            Token::literal(&literal)
-        }
     }
 
     fn scan_string(&mut self) {

@@ -154,45 +154,41 @@ impl Token {
         Token::create_symbol(TokenType::Rbrace, "}")
     }
 
-    pub fn keyword(key: &str) -> Option<Token> {
+    pub fn keyword_or_literal(key: &str) -> Token {
         let ttype = match &*key {
-            "if" => Some(TokenType::KeywordIf),
-            "print" => Some(TokenType::KeywordPrint),
-            "return" => Some(TokenType::KeywordReturn),
-            "while" => Some(TokenType::KeywordWhile),
-            "let" => Some(TokenType::KeywordLet),
-            "fn" => Some(TokenType::KeywordFn),
-            &_ => None,
+            "if" => TokenType::KeywordIf,
+            "print" => TokenType::KeywordPrint,
+            "return" => TokenType::KeywordReturn,
+            "while" => TokenType::KeywordWhile,
+            "let" => TokenType::KeywordLet,
+            "fn" => TokenType::KeywordFn,
+            &_ => TokenType::Literal,
         };
-        if let Some(t) = ttype {
-            Some(Token{token_type: t, literal: Some(LiteralType::String(key.to_string()))})
-        } else {
-            None
-        }
+        Token{token_type: ttype, literal: Some(LiteralType::Identifier(key.to_string()))}
     }
 
     pub fn keyword_if() -> Token {
-        Token::keyword("if").unwrap()
+        Token::keyword_or_literal("if")
     }
 
     pub fn keyword_print() -> Token {
-        Token::keyword("print").unwrap()
+        Token::keyword_or_literal("print")
     }
 
     pub fn keyword_return() -> Token {
-        Token::keyword("return").unwrap()
+        Token::keyword_or_literal("return")
     }
 
     pub fn keyword_while() -> Token {
-        Token::keyword("while").unwrap()
+        Token::keyword_or_literal("while")
     }
 
     pub fn keyword_let() -> Token {
-        Token::keyword("let").unwrap()
+        Token::keyword_or_literal("let")
     }
 
     pub fn keyword_fn() -> Token {
-        Token::keyword("fn").unwrap()
+        Token::keyword_or_literal("fn")
     }
     
 }
