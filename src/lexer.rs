@@ -358,9 +358,9 @@ mod tests {
 
     #[test]
     fn braces() {
-        let tokens = lex_program("fn{{}}");
-        assert_eq!([Token::literal("fn"), Token::lbrace(), Token::lbrace(),
-        Token::rbrace(), Token::rbrace()], &tokens[..]);
+        let tokens = lex_program("abc{{x}}cba");
+        assert_eq!([Token::literal("abc"), Token::lbrace(), Token::lbrace(), Token::literal("x"),
+        Token::rbrace(), Token::rbrace(), Token::literal("cba")], &tokens[..]);
     }
 
     #[test]
@@ -372,9 +372,10 @@ mod tests {
 
     #[test]
     fn keywords() {
-        let tokens: Vec<Token> = lex_program("if print while return let");
+        let tokens: Vec<Token> = lex_program("if print while return let fn");
         let tokens: Vec<TokenType> = tokens.into_iter().map(|token| {token.token_type}).collect();
-        assert_eq!([TokenType::KeywordIf, TokenType::KeywordPrint, TokenType::KeywordWhile, TokenType::KeywordReturn, TokenType::KeywordLet],
+        assert_eq!([TokenType::KeywordIf, TokenType::KeywordPrint, TokenType::KeywordWhile, TokenType::KeywordReturn, 
+            TokenType::KeywordLet, TokenType::KeywordFn],
             &tokens[..]);
     }
 
@@ -382,11 +383,11 @@ mod tests {
     fn sample_program() {
         let tokens = lex_program(
             r#"
-            square(x) {
+            fn square(x) {
                 return x * x;
             }
 
-            main() {
+            fn main() {
                 let y = square(4);
                 while y > 12 {
                     print("answer is " y);
@@ -395,9 +396,9 @@ mod tests {
             }
             "#);
 
-        assert_eq!([Token::literal("square"), Token::lparen(), Token::literal("x"), Token::rparen(),
+        assert_eq!([Token::keyword_fn(), Token::literal("square"), Token::lparen(), Token::literal("x"), Token::rparen(),
                     Token::lbrace(), Token::keyword_return(), Token::literal("x"), Token::asterisk(),
-                    Token::literal("x"), Token::semicolon(), Token::rbrace(), Token::literal("main"), Token::lparen(),
+                    Token::literal("x"), Token::semicolon(), Token::rbrace(), Token::keyword_fn(), Token::literal("main"), Token::lparen(),
                     Token::rparen(), Token::lbrace(), Token::keyword_let(), Token::literal("y"), Token::assignment(),
                     Token::literal("square"), Token::lparen(), Token::number(4), Token::rparen(),
                     Token::semicolon(), Token::keyword_while(), Token::literal("y"), Token::gt(),

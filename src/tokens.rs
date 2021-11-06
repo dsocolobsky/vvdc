@@ -27,6 +27,7 @@ pub enum TokenType {
     KeywordReturn,
     KeywordWhile,
     KeywordLet,
+    KeywordFn,
 }
 
 #[derive(PartialEq)]
@@ -160,6 +161,7 @@ impl Token {
             "return" => Some(TokenType::KeywordReturn),
             "while" => Some(TokenType::KeywordWhile),
             "let" => Some(TokenType::KeywordLet),
+            "fn" => Some(TokenType::KeywordFn),
             &_ => None,
         };
         if let Some(t) = ttype {
@@ -187,6 +189,10 @@ impl Token {
 
     pub fn keyword_let() -> Token {
         Token::keyword("let").unwrap()
+    }
+
+    pub fn keyword_fn() -> Token {
+        Token::keyword("fn").unwrap()
     }
     
 }
