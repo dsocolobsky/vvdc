@@ -1,5 +1,6 @@
 pub mod tokens;
 pub mod lexer;
+pub mod parser;
 use std::fs;
 
 fn main() {
@@ -21,3 +22,6 @@ mod test {
 
 #[cfg(test)]
 mod lexer_test;
+
+#[cfg(test)]
+mod parser_test;

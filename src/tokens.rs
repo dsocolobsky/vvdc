@@ -1,7 +1,7 @@
 
 use std::fmt;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum TokenType {
     Literal, String, Number,
     Assignment, Plus, Minus, Asterisk,
@@ -11,7 +11,7 @@ pub enum TokenType {
     KeywordIf, KeywordPrint, KeywordReturn, KeywordWhile, KeywordLet, KeywordFn,
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone)]
 pub enum LiteralType {
     Identifier(String),
     Symbol(String),
@@ -30,7 +30,7 @@ impl fmt::Debug for LiteralType {
     }
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone)]
 pub struct Token {
     pub token_type: TokenType,
     pub literal: Option<LiteralType>,
