@@ -45,9 +45,10 @@ pub fn parse(tokens: &Vec<Token>) ->Vec<Expression> {
                 )));
                 index = index + 2;
             },
-            TokenType::Literal => todo!(),
-            TokenType::String => todo!(),
-            TokenType::Number => todo!(),
+            TokenType::String | TokenType::Literal  | TokenType::Number => {
+                expressions.push(Expression::literal_expression(tokens[index].clone()));
+                index = index + 1;
+            },
             TokenType::Assignment => todo!(),
             TokenType::Plus => todo!(),
             TokenType::Minus => todo!(),
