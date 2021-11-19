@@ -74,10 +74,9 @@ pub fn parse_expression(tokens: &Vec<Token>, from: usize) -> (Option<Expression>
         TokenType::KeywordIf => todo!(),
         TokenType::KeywordPrint => todo!(),
         TokenType::KeywordReturn => {
-            let expression = Expression::return_expression(
-                Expression::literal_expression(tokens[from+1].clone())
-            ); 
-            return (Some(expression), 2)
+            let (right_expression, positions) = parse_expression(tokens, from+1);
+            let expression = Expression::return_expression(right_expression.unwrap()); 
+            return (Some(expression), 2 + positions)
         },
         TokenType::KeywordWhile => todo!(),
         TokenType::KeywordLet => todo!(),

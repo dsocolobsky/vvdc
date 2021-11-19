@@ -45,3 +45,22 @@ fn return_number() {
     assert_eq!(ExpressionType::LiteralExpression, right_expression.expression_type);
     assert_eq!(Token::number(42), right_expression.token, "right expression is number 42");
 }
+
+#[test]
+fn return_expression() {
+    let tokens = lex_program("return !1;");
+    let expressions  = parse(&tokens);
+
+    assert_eq!(1, expressions.len(), "number of expressions");
+    assert_eq!(ExpressionType::ReturnExpression, expressions[0].expression_type);
+    assert_eq!(Token::keyword_return(), expressions[0].token, "return token is 'return'");
+
+    let right_expression = expressions[0].right.as_ref().unwrap();
+    assert_eq!(ExpressionType::PrefixExpression, right_expression.expression_type);
+    assert_eq!(Token::bang(), right_expression.token, "right expression token is a bang");
+
+    // Right side of negation expression => number 1
+    let negation_expression_right = right_expression.right.as_ref().unwrap();
+    assert_eq!(ExpressionType::LiteralExpression, negation_expression_right.expression_type);
+    assert_eq!(Token::number(1), negation_expression_right.token, "right side of negation expression is number 1");
+}
