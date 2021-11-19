@@ -4,7 +4,8 @@ use crate::tokens::TokenType;
 #[derive(Debug, PartialEq)]
 pub enum ExpressionType {
     LiteralExpression,
-    PrefixExpression
+    PrefixExpression,
+    ReturnExpression,
 }
 
 pub struct Expression  {
@@ -22,11 +23,19 @@ impl Expression {
         }
     }
 
-    fn  prefix_expression(token: Token, right: Expression) -> Expression {
+    fn prefix_expression(token: Token, right: Expression) -> Expression {
         Expression {
             expression_type: ExpressionType::PrefixExpression,
             token: token,
             right: Some(Box::new(right)), 
+        }
+    }
+
+    fn return_expression(right: Expression) -> Expression {
+        Expression {
+            expression_type: ExpressionType::ReturnExpression,
+            token: Token::keyword_return(),
+            right: Some(Box::new(right)),
         }
     }
 }
@@ -53,7 +62,9 @@ pub fn parse(tokens: &Vec<Token>) ->Vec<Expression> {
             TokenType::Plus => todo!(),
             TokenType::Minus => todo!(),
             TokenType::Asterisk => todo!(),
-            TokenType::Semicolon => todo!(),
+            TokenType::Semicolon => {
+                index = index + 1;
+            },
             TokenType::Equals => todo!(),
             TokenType::Unequal => todo!(),
             TokenType::Lt => todo!(),
@@ -66,7 +77,12 @@ pub fn parse(tokens: &Vec<Token>) ->Vec<Expression> {
             TokenType::Rbrace => todo!(),
             TokenType::KeywordIf => todo!(),
             TokenType::KeywordPrint => todo!(),
-            TokenType::KeywordReturn => todo!(),
+            TokenType::KeywordReturn => {
+                expressions.push(Expression::return_expression(
+                    Expression::literal_expression(tokens[index+1].clone())
+                ));
+                index = index + 2;
+            },
             TokenType::KeywordWhile => todo!(),
             TokenType::KeywordLet => todo!(),
             TokenType::KeywordFn => todo!(),
