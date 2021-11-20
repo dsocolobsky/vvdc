@@ -8,6 +8,7 @@ pub enum ExpressionType {
     ReturnExpression,
 }
 
+#[derive(Debug)]
 pub struct Expression  {
     pub expression_type: ExpressionType,
     pub token: Token,
