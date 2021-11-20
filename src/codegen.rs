@@ -40,8 +40,25 @@ impl Compiler {
         }
     }
 
+    fn emit_code_for_negation(&mut self, expression: &Expression) {
+        let right_side = expression.right_side();
+        match right_side.expression_type {
+            crate::parser::ExpressionType::LiteralExpression => {
+                let val = right_side.token.literal_as_boolean();
+                let val = if val { 0 } else { 1 };
+                self.asm_write(format!("mov rbx, {}", val).as_str());
+            },
+            crate::parser::ExpressionType::PrefixExpression => {
+                self.emit_code_for_negation(right_side);
+                self.asm_write("sete al");
+                self.asm_write("movzx rbx, al");
+            },
+            crate::parser::ExpressionType::ReturnExpression => panic!("can not prefix a return"),
+        }
+    }
+
     fn emit_code_for_return(&mut self, expression: &Expression) {
-        let right_side = expression.right.as_ref().unwrap();
+        let right_side = expression.right_side();
         match right_side.expression_type {
             crate::parser::ExpressionType::LiteralExpression => {
                 self.asm_write(
@@ -49,8 +66,12 @@ impl Compiler {
                         .to_string(),
                 );
             }
-            crate::parser::ExpressionType::PrefixExpression => todo!(),
-            crate::parser::ExpressionType::ReturnExpression => todo!(),
+            crate::parser::ExpressionType::PrefixExpression => {
+                self.emit_code_for_negation(right_side); // already leaves val in rbx
+            },
+            crate::parser::ExpressionType::ReturnExpression => {
+                panic!("can not return a return");
+            },
         }
         self.asm_write("mov rax, 1");
         self.asm_write("int 0x80");

@@ -174,4 +174,14 @@ impl Token {
     pub fn keyword_fn() -> Token {
         Token::keyword_or_literal("fn")
     }
+
+    pub fn literal_as_boolean(&self) -> bool {
+        let val = self.literal.as_ref().unwrap();
+        match val {
+            LiteralType::Identifier(_) => todo!("identifier to boolean"),
+            LiteralType::Symbol(_) => panic!("can not coerce symbol into boolean"),
+            LiteralType::Number(lit) => *lit != 0,
+            LiteralType::String(lit) => lit != "",
+        }
+    }
 }

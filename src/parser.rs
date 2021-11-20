@@ -39,6 +39,10 @@ impl Expression {
             right: Some(Box::new(right)),
         }
     }
+
+    pub fn right_side(&self) -> &Expression {
+        self.right.as_ref().unwrap().as_ref()
+    }
 }
 
 pub fn parse_expression(tokens: &Vec<Token>, from: usize) -> (Option<Expression>, usize) {
