@@ -9,7 +9,7 @@ pub enum ExpressionType {
 }
 
 #[derive(Debug, Clone)]
-pub struct Expression  {
+pub struct Expression {
     pub expression_type: ExpressionType,
     pub token: Token,
     pub right: Option<Box<Expression>>,
@@ -20,7 +20,7 @@ impl Expression {
         Expression {
             expression_type: ExpressionType::LiteralExpression,
             token: token,
-            right: None, 
+            right: None,
         }
     }
 
@@ -28,7 +28,7 @@ impl Expression {
         Expression {
             expression_type: ExpressionType::PrefixExpression,
             token: token,
-            right: Some(Box::new(right)), 
+            right: Some(Box::new(right)),
         }
     }
 
@@ -47,21 +47,19 @@ pub fn parse_expression(tokens: &Vec<Token>, from: usize) -> (Option<Expression>
         TokenType::Bang => {
             let expression = Expression::prefix_expression(
                 tokens[from].clone(),
-                Expression::literal_expression(tokens[from+1].clone()
-            ));
-            return (Some(expression), 2)
-        },
-        TokenType::String | TokenType::Literal  | TokenType::Number => {
+                Expression::literal_expression(tokens[from + 1].clone()),
+            );
+            return (Some(expression), 2);
+        }
+        TokenType::String | TokenType::Literal | TokenType::Number => {
             let expression = Expression::literal_expression(tokens[from].clone());
-            return (Some(expression), 1)
-        },
+            return (Some(expression), 1);
+        }
         TokenType::Assignment => todo!(),
         TokenType::Plus => todo!(),
         TokenType::Minus => todo!(),
         TokenType::Asterisk => todo!(),
-        TokenType::Semicolon => {
-            return (None, 1)
-        },
+        TokenType::Semicolon => return (None, 1),
         TokenType::Equals => todo!(),
         TokenType::Unequal => todo!(),
         TokenType::Lt => todo!(),
@@ -75,17 +73,17 @@ pub fn parse_expression(tokens: &Vec<Token>, from: usize) -> (Option<Expression>
         TokenType::KeywordIf => todo!(),
         TokenType::KeywordPrint => todo!(),
         TokenType::KeywordReturn => {
-            let (right_expression, positions) = parse_expression(tokens, from+1);
-            let expression = Expression::return_expression(right_expression.unwrap()); 
-            return (Some(expression), 2 + positions)
-        },
+            let (right_expression, positions) = parse_expression(tokens, from + 1);
+            let expression = Expression::return_expression(right_expression.unwrap());
+            return (Some(expression), 2 + positions);
+        }
         TokenType::KeywordWhile => todo!(),
         TokenType::KeywordLet => todo!(),
         TokenType::KeywordFn => todo!(),
     }
 }
 
-pub fn parse(tokens: &Vec<Token>) ->Vec<Expression> {
+pub fn parse(tokens: &Vec<Token>) -> Vec<Expression> {
     let mut expressions = Vec::new();
     let mut index: usize = 0;
 
@@ -96,6 +94,6 @@ pub fn parse(tokens: &Vec<Token>) ->Vec<Expression> {
         }
         index = index + advance;
     }
-    
+
     expressions
 }

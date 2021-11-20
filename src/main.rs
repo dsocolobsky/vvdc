@@ -1,7 +1,7 @@
-pub mod tokens;
+pub mod codegen;
 pub mod lexer;
 pub mod parser;
-pub mod codegen;
+pub mod tokens;
 use std::fs;
 use std::process::Command;
 
@@ -25,26 +25,24 @@ fn main() {
 
     // Call nasm on .asm file to generate .o file
     let output = Command::new("nasm")
-            .args(["-f elf64", "programs/obj/output.asm"])
-            .output()
-            .expect("failed to execute nasm");
+        .args(["-f elf64", "programs/obj/output.asm"])
+        .output()
+        .expect("failed to execute nasm");
     println!("nasm:");
     println!("{:?}", output);
 
     // Call linker to generate final executable
     let output = Command::new("ld")
-            .args(["-s", "-o", "programs/obj/output", "programs/obj/output.o"])
-            .output()
-            .expect("failed to execute ld");
+        .args(["-s", "-o", "programs/obj/output", "programs/obj/output.o"])
+        .output()
+        .expect("failed to execute ld");
     println!("ld:");
     println!("{:?}", output);
 }
 
 mod test {
     #[test]
-    fn main_test() {
-        
-    }
+    fn main_test() {}
 }
 
 #[cfg(test)]

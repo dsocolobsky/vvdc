@@ -10,8 +10,12 @@ struct Lexer {
 
 impl Lexer {
     fn new() -> Lexer {
-        Lexer {code: Vec::new(), tokens: Vec::new(), 
-            current: 0, current_char: '\0'}
+        Lexer {
+            code: Vec::new(),
+            tokens: Vec::new(),
+            current: 0,
+            current_char: '\0',
+        }
     }
 
     fn peek(&self) -> char {
@@ -36,7 +40,7 @@ impl Lexer {
             let c = self.next();
 
             match c {
-                c if c.is_whitespace() => {},
+                c if c.is_whitespace() => {}
                 '+' => self.tokens.push(Token::plus()),
                 '-' => self.tokens.push(Token::minus()),
                 '*' => self.tokens.push(Token::asterisk()),
@@ -49,10 +53,10 @@ impl Lexer {
                     if self.peek() == '=' {
                         self.tokens.push(Token::equals());
                         self.next();
-                    }  else {
+                    } else {
                         self.tokens.push(Token::assignment());
                     }
-                },
+                }
                 '!' => {
                     if self.peek() == '=' {
                         self.tokens.push(Token::unequal());
@@ -60,7 +64,7 @@ impl Lexer {
                     } else {
                         self.tokens.push(Token::bang());
                     }
-                },
+                }
                 '<' => {
                     if self.peek() == '=' {
                         self.tokens.push(Token::lteq());
@@ -68,7 +72,7 @@ impl Lexer {
                     } else {
                         self.tokens.push(Token::lt());
                     }
-                },
+                }
                 '>' => {
                     if self.peek() == '=' {
                         self.tokens.push(Token::gteq());
@@ -76,7 +80,7 @@ impl Lexer {
                     } else {
                         self.tokens.push(Token::gt());
                     }
-                },
+                }
                 '"' => self.scan_string(),
                 c if c.is_ascii_alphabetic() => self.scan_literal(),
                 c if c.is_ascii_digit() => self.scan_number(),
@@ -97,7 +101,7 @@ impl Lexer {
                 if c == '"' && ttype == TokenType::String {
                     self.next();
                 }
-                break
+                break;
             }
             literal.push(c);
             self.next();

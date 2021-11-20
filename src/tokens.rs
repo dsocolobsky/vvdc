@@ -1,6 +1,6 @@
-
 use std::fmt;
 
+#[rustfmt::skip]
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum TokenType {
     Literal, String, Number,
@@ -145,7 +145,10 @@ impl Token {
             "fn" => TokenType::KeywordFn,
             &_ => TokenType::Literal,
         };
-        Token{token_type: ttype, literal: Some(LiteralType::Identifier(key.to_string()))}
+        Token {
+            token_type: ttype,
+            literal: Some(LiteralType::Identifier(key.to_string())),
+        }
     }
 
     pub fn keyword_if() -> Token {
@@ -171,5 +174,4 @@ impl Token {
     pub fn keyword_fn() -> Token {
         Token::keyword_or_literal("fn")
     }
-    
 }

@@ -2,12 +2,15 @@ use crate::parser::Expression;
 
 struct Compiler {
     code: String,
-    expressions: Vec<Expression>
+    expressions: Vec<Expression>,
 }
 
 impl Compiler {
     fn new(expressions: Vec<Expression>) -> Compiler {
-        Compiler{code: String::from(""), expressions: expressions}
+        Compiler {
+            code: String::from(""),
+            expressions: expressions,
+        }
     }
 
     fn compile(&mut self) {
@@ -33,7 +36,7 @@ impl Compiler {
             crate::parser::ExpressionType::PrefixExpression => todo!(),
             crate::parser::ExpressionType::ReturnExpression => {
                 self.emit_code_for_return(expression);
-            },
+            }
         }
     }
 
@@ -41,8 +44,11 @@ impl Compiler {
         let right_side = expression.right.as_ref().unwrap();
         match right_side.expression_type {
             crate::parser::ExpressionType::LiteralExpression => {
-                self.asm_write(&format!("mov rbx, {:?}", right_side.token.literal.as_ref().unwrap()).to_string());
-            },
+                self.asm_write(
+                    &format!("mov rbx, {:?}", right_side.token.literal.as_ref().unwrap())
+                        .to_string(),
+                );
+            }
             crate::parser::ExpressionType::PrefixExpression => todo!(),
             crate::parser::ExpressionType::ReturnExpression => todo!(),
         }

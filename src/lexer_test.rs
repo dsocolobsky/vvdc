@@ -1,7 +1,7 @@
 use super::*;
-use lexer::lex_program;
 use crate::tokens::Token;
 use crate::tokens::TokenType;
+use lexer::lex_program;
 
 #[test]
 fn empty_string_produces_empty_list_of_tokens() {
