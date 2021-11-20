@@ -1,49 +1,58 @@
 use crate::parser::Expression;
 
-fn build_prelude(code: &mut String) {
-    code.push_str("section .text\n");
-    code.push_str("global _start\n");
-    code.push_str("_start:\n");
+struct Compiler {
+    code: String,
+    expressions: Vec<Expression>
 }
 
-fn emit_code_for_return(code: &mut String, expression: &Expression) {
-    // return 5;
-    // mov rbx, 5
-    // int 0x80
-    // =========
-    // return !5
-    // mov rbx, 5
-    // neg rbx
-    // int 0x80
-    let right_side = expression.right.as_ref().unwrap();
-    match right_side.expression_type {
-        crate::parser::ExpressionType::LiteralExpression => {
-            code.push_str(&format!("mov rbx, {:?}\n", right_side.token.literal.as_ref().unwrap()).to_string());
-        },
-        crate::parser::ExpressionType::PrefixExpression => todo!(),
-        crate::parser::ExpressionType::ReturnExpression => todo!(),
+impl Compiler {
+    fn new(expressions: Vec<Expression>) -> Compiler {
+        Compiler{code: String::from(""), expressions: expressions}
     }
-    code.push_str("mov rax, 1\n");
-    code.push_str("int 0x80\n");
+
+    fn compile(&mut self) {
+        self.build_prelude();
+        for expression in self.expressions.clone() {
+            self.emit_code_for_expression(&expression);
+        }
+    }
+
+    fn asm_write(&mut self, line: &str) {
+        self.code.push_str(&format!("{}\n", line).to_string());
+    }
+
+    fn build_prelude(&mut self) {
+        self.asm_write("section .text");
+        self.asm_write("global _start");
+        self.asm_write("_start:");
+    }
+
+    fn emit_code_for_expression(&mut self, expression: &Expression) {
+        match expression.expression_type {
+            crate::parser::ExpressionType::LiteralExpression => todo!(),
+            crate::parser::ExpressionType::PrefixExpression => todo!(),
+            crate::parser::ExpressionType::ReturnExpression => {
+                self.emit_code_for_return(expression);
+            },
+        }
+    }
+
+    fn emit_code_for_return(&mut self, expression: &Expression) {
+        let right_side = expression.right.as_ref().unwrap();
+        match right_side.expression_type {
+            crate::parser::ExpressionType::LiteralExpression => {
+                self.asm_write(&format!("mov rbx, {:?}", right_side.token.literal.as_ref().unwrap()).to_string());
+            },
+            crate::parser::ExpressionType::PrefixExpression => todo!(),
+            crate::parser::ExpressionType::ReturnExpression => todo!(),
+        }
+        self.asm_write("mov rax, 1");
+        self.asm_write("int 0x80");
+    }
 }
 
-fn emit_code_for_expression(code: &mut String, expression: &Expression) {
-    match expression.expression_type {
-        crate::parser::ExpressionType::LiteralExpression => todo!(),
-        crate::parser::ExpressionType::PrefixExpression => todo!(),
-        crate::parser::ExpressionType::ReturnExpression => {
-            emit_code_for_return(code, expression);
-        },
-    }
-}
-
-pub fn generate_code(expressions: &Vec<Expression>) -> String {
-    let mut code = String::from("");
-    build_prelude(&mut code);
-
-    for expression in expressions {
-        emit_code_for_expression(&mut code, expression);
-    }
-
-    code
+pub fn generate_code(expressions: Vec<Expression>) -> String {
+    let mut compiler = Compiler::new(expressions);
+    compiler.compile();
+    compiler.code
 }

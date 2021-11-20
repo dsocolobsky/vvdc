@@ -7,7 +7,7 @@ use codegen::generate_code;
 fn return_a_literal() {
     let tokens = lex_program("return 13;");
     let expressions  = parse(&tokens);
-    let code = generate_code(&expressions);
+    let code = generate_code(expressions);
 
     assert_eq!(
 r#"section .text

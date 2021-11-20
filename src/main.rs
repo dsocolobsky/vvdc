@@ -15,7 +15,7 @@ fn main() {
     let expressions = parser::parse(&tokens);
     println!("{:?}", &expressions);
     println!("============== CODE ==================");
-    let code = codegen::generate_code(&expressions);
+    let code = codegen::generate_code(expressions);
     println!("{}", code);
     println!("\n");
 

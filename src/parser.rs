@@ -1,14 +1,14 @@
 use crate::tokens::Token;
 use crate::tokens::TokenType;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum ExpressionType {
     LiteralExpression,
     PrefixExpression,
     ReturnExpression,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Expression  {
     pub expression_type: ExpressionType,
     pub token: Token,
