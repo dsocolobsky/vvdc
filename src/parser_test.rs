@@ -109,3 +109,55 @@ fn return_expression() {
         "right side of negation expression is number 1"
     );
 }
+
+#[test]
+fn return_negation_of_negation() {
+    let tokens = lex_program("return !!5;");
+    let expressions = parse(&tokens);
+    
+    // return (!(!5))
+    assert_eq!(1, expressions.len(), "number of expressions");
+    assert_eq!(
+        ExpressionType::ReturnExpression,
+        expressions[0].expression_type,
+        "outer expression is a return"
+    );
+
+    // !(!5)
+    let right_expression = expressions[0].right.as_ref().unwrap();
+    assert_eq!(
+        ExpressionType::PrefixExpression,
+        right_expression.expression_type,
+        "first prefix expression is a prefix"
+    );
+    assert_eq!(
+        Token::bang(),
+        right_expression.token,
+        "right expression token is a bang"
+    );
+
+    // !5
+    let right_right_expression = right_expression.right.as_ref().unwrap();
+    assert_eq!(
+        ExpressionType::PrefixExpression,
+        right_right_expression.expression_type,
+        "second prefix expression is a prefix"
+    );
+    assert_eq!(
+        Token::bang(),
+        right_right_expression.token,
+        "right right expression token is a bang"
+    );
+
+    let number_exp = right_right_expression.right.as_ref().unwrap();
+    assert_eq!(
+        ExpressionType::LiteralExpression,
+        number_exp.expression_type,
+        "inner expression is a literal"
+    );
+    assert_eq!(
+        Token::number(5),
+        number_exp.token,
+        "negated number is 5"
+    );
+}

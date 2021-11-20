@@ -56,3 +56,23 @@ int 0x80
         code
     );
 }
+
+#[test]
+fn return_negation_of_a_negation_of_a_literal() {
+    let tokens = lex_program("return !!5;");
+    let expressions = parse(&tokens);
+    let code = generate_code(expressions);
+
+    assert_eq!(
+        r#"section .text
+global _start
+_start:
+mov rbx, 0
+sete al
+movzx rbx, al
+mov rax, 1
+int 0x80
+"#,
+        code
+    );
+}

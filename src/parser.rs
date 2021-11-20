@@ -49,11 +49,12 @@ pub fn parse_expression(tokens: &Vec<Token>, from: usize) -> (Option<Expression>
     let token = &tokens[from];
     match token.token_type {
         TokenType::Bang => {
+            let (rhs, adv) = parse_expression(tokens, from+1);
             let expression = Expression::prefix_expression(
                 tokens[from].clone(),
-                Expression::literal_expression(tokens[from + 1].clone()),
+                rhs.unwrap()
             );
-            return (Some(expression), 2);
+            return (Some(expression), 1 + adv);
         }
         TokenType::String | TokenType::Literal | TokenType::Number => {
             let expression = Expression::literal_expression(tokens[from].clone());
