@@ -6,7 +6,7 @@ use parser::parse;
 #[test]
 fn literals() {
     let tokens = lex_program(r#"1337 "banana" tomato"#);
-    let expressions = parse(&tokens);
+    let expressions = parse(tokens);
 
     assert_eq!(3, expressions.len());
     assert!(expressions
@@ -21,7 +21,7 @@ fn literals() {
 #[test]
 fn unary_negation() {
     let tokens = lex_program("!5");
-    let expressions = parse(&tokens);
+    let expressions = parse(tokens);
 
     assert_eq!(1, expressions.len(), "number of expressions");
     assert_eq!(
@@ -45,7 +45,7 @@ fn unary_negation() {
 #[test]
 fn double_negation() {
     let tokens = lex_program("!!5");
-    let expressions = parse(&tokens);
+    let expressions = parse(tokens);
 
     assert_eq!(1, expressions.len(), "number of expressions");
     assert_eq!(
@@ -81,7 +81,7 @@ fn double_negation() {
 #[test]
 fn return_number() {
     let tokens = lex_program("return 42;");
-    let expressions = parse(&tokens);
+    let expressions = parse(tokens);
 
     assert_eq!(1, expressions.len(), "number of expressions");
     assert_eq!(
@@ -109,7 +109,7 @@ fn return_number() {
 #[test]
 fn return_expression() {
     let tokens = lex_program("return !1;");
-    let expressions = parse(&tokens);
+    let expressions = parse(tokens);
 
     assert_eq!(1, expressions.len(), "number of expressions");
     assert_eq!(
@@ -149,7 +149,7 @@ fn return_expression() {
 #[test]
 fn return_negation_of_negation() {
     let tokens = lex_program("return !!5;");
-    let expressions = parse(&tokens);
+    let expressions = parse(tokens);
     
     // return (!(!5))
     assert_eq!(1, expressions.len(), "number of expressions");

@@ -5,6 +5,7 @@ use crate::tokens::TokenType;
 pub enum ExpressionType {
     LiteralExpression,
     PrefixExpression,
+    InfixExpression,
     ReturnExpression,
 }
 
@@ -12,6 +13,7 @@ pub enum ExpressionType {
 pub struct Expression {
     pub expression_type: ExpressionType,
     pub token: Token,
+    pub left: Option<Box<Expression>>,
     pub right: Option<Box<Expression>>,
 }
 
@@ -20,6 +22,7 @@ impl Expression {
         Expression {
             expression_type: ExpressionType::LiteralExpression,
             token: token,
+            left: None,
             right: None,
         }
     }
@@ -28,6 +31,16 @@ impl Expression {
         Expression {
             expression_type: ExpressionType::PrefixExpression,
             token: token,
+            left: None,
+            right: Some(Box::new(right)),
+        }
+    }
+
+    fn infix_expression(token: Token, left: Expression, right: Expression) -> Expression {
+        Expression {
+            expression_type: ExpressionType::InfixExpression,
+            token: token,
+            left: Some(Box::new(left)),
             right: Some(Box::new(right)),
         }
     }
@@ -36,6 +49,7 @@ impl Expression {
         Expression {
             expression_type: ExpressionType::ReturnExpression,
             token: Token::keyword_return(),
+            left: None,
             right: Some(Box::new(right)),
         }
     }
@@ -45,60 +59,88 @@ impl Expression {
     }
 }
 
-pub fn parse_expression(tokens: &Vec<Token>, from: usize) -> (Option<Expression>, usize) {
-    let token = &tokens[from];
-    match token.token_type {
-        TokenType::Bang => {
-            let (rhs, adv) = parse_expression(tokens, from+1);
-            let expression = Expression::prefix_expression(
-                tokens[from].clone(),
-                rhs.unwrap()
-            );
-            return (Some(expression), 1 + adv);
+pub struct Parser {
+    tokens: Vec<Token>,
+    expressions: Vec<Expression>,
+    token_index: usize,
+    parsing_infix: bool,
+}
+
+impl Parser {
+    fn new(tokens: Vec<Token>) -> Parser {
+        Parser {
+            tokens: tokens,
+            expressions: Vec::new(),
+            token_index: 0,
+            parsing_infix: false,
         }
-        TokenType::String | TokenType::Literal | TokenType::Number => {
-            let expression = Expression::literal_expression(tokens[from].clone());
-            return (Some(expression), 1);
+    }
+
+    pub fn parse(&mut self) {
+        while self.token_index < self.tokens.len() {
+            let (expression, advance) = self.parse_expression(self.token_index);
+            if let Some(exp) = expression {
+                self.expressions.push(exp);
+            }
+            self.token_index = self.token_index + advance;
         }
-        TokenType::Assignment => todo!(),
-        TokenType::Plus => todo!(),
-        TokenType::Minus => todo!(),
-        TokenType::Asterisk => todo!(),
-        TokenType::Semicolon => return (None, 1),
-        TokenType::Equals => todo!(),
-        TokenType::Unequal => todo!(),
-        TokenType::Lt => todo!(),
-        TokenType::Gt => todo!(),
-        TokenType::Lteq => todo!(),
-        TokenType::Gteq => todo!(),
-        TokenType::Lparen => todo!(),
-        TokenType::Rparen => todo!(),
-        TokenType::Lbrace => todo!(),
-        TokenType::Rbrace => todo!(),
-        TokenType::KeywordIf => todo!(),
-        TokenType::KeywordPrint => todo!(),
-        TokenType::KeywordReturn => {
-            let (right_expression, positions) = parse_expression(tokens, from + 1);
-            let expression = Expression::return_expression(right_expression.unwrap());
-            return (Some(expression), 2 + positions);
+    }
+
+    fn parse_expression(&self, from: usize) -> (Option<Expression>, usize) {
+        let token = &self.tokens[from];
+        match token.token_type {
+            TokenType::Bang => {
+                let (rhs, adv) = self.parse_expression(from+1);
+                let expression = Expression::prefix_expression(
+                    self.tokens[from].clone(),
+                    rhs.unwrap()
+                );
+                return (Some(expression), 1 + adv);
+            }
+            TokenType::String | TokenType::Literal | TokenType::Number => {
+                let expression = Expression::literal_expression(self.tokens[from].clone());
+                return (Some(expression), 1);
+            }
+            TokenType::Assignment => todo!(),
+            TokenType::Plus => todo!(),
+                /*let (rhs, adv) = parse_expression(tokens, from+1);
+                let (lhs, _) = parse_expression(tokens, from - 1);
+    
+                let expression = Expression::prefix_expression(
+                    tokens[from].clone(),
+                    rhs.unwrap()
+                );
+                return (Some(expression), 1 + adv);
+            },*/
+            TokenType::Minus => todo!(),
+            TokenType::Asterisk => todo!(),
+            TokenType::Semicolon => return (None, 1),
+            TokenType::Equals => todo!(),
+            TokenType::Unequal => todo!(),
+            TokenType::Lt => todo!(),
+            TokenType::Gt => todo!(),
+            TokenType::Lteq => todo!(),
+            TokenType::Gteq => todo!(),
+            TokenType::Lparen => todo!(),
+            TokenType::Rparen => todo!(),
+            TokenType::Lbrace => todo!(),
+            TokenType::Rbrace => todo!(),
+            TokenType::KeywordIf => todo!(),
+            TokenType::KeywordPrint => todo!(),
+            TokenType::KeywordReturn => {
+                let (right_expression, positions) = self.parse_expression(self.token_index + 1);
+                let expression = Expression::return_expression(right_expression.unwrap());
+                return (Some(expression), 2 + positions);
+            }
+            TokenType::KeywordWhile => todo!(),
+            TokenType::KeywordLet => todo!(),
+            TokenType::KeywordFn => todo!(),
         }
-        TokenType::KeywordWhile => todo!(),
-        TokenType::KeywordLet => todo!(),
-        TokenType::KeywordFn => todo!(),
     }
 }
 
-pub fn parse(tokens: &Vec<Token>) -> Vec<Expression> {
-    let mut expressions = Vec::new();
-    let mut index: usize = 0;
-
-    while index < tokens.len() {
-        let (expression, advance) = parse_expression(tokens, index);
-        if let Some(exp) = expression {
-            expressions.push(exp);
-        }
-        index = index + advance;
-    }
-
-    expressions
+pub fn parse(tokens: Vec<Token>) -> Vec<Expression> {
+    let mut parser = Parser::new(tokens);
+    parser.parse();
+    parser.expressions
 }

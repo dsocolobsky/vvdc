@@ -10,9 +10,9 @@ fn main() {
     println!("{}", code);
     println!("============ TOKENS ====================");
     let tokens = lexer::lex_program(&code);
-    println!("{:?}", &tokens);
+    println!("{:?}", tokens);
     println!("============== AST ==================");
-    let expressions = parser::parse(&tokens);
+    let expressions = parser::parse(tokens);
     println!("{:?}", &expressions);
     println!("============== CODE ==================");
     let code = codegen::generate_code(expressions);

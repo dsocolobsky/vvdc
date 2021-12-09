@@ -6,7 +6,7 @@ use parser::parse;
 #[test]
 fn return_a_literal() {
     let tokens = lex_program("return 13;");
-    let expressions = parse(&tokens);
+    let expressions = parse(tokens);
     let code = generate_code(expressions);
 
     assert_eq!(
@@ -24,7 +24,7 @@ int 0x80
 #[test]
 fn return_a_negated_positive_number() {
     let tokens = lex_program("return !5;");
-    let expressions = parse(&tokens);
+    let expressions = parse(tokens);
     let code = generate_code(expressions);
 
     assert_eq!(
@@ -42,7 +42,7 @@ int 0x80
 #[test]
 fn return_a_negated_zero() {
     let tokens = lex_program("return !0;");
-    let expressions = parse(&tokens);
+    let expressions = parse(tokens);
     let code = generate_code(expressions);
 
     assert_eq!(
@@ -60,7 +60,7 @@ int 0x80
 #[test]
 fn return_negation_of_a_negation_of_a_literal() {
     let tokens = lex_program("return !!5;");
-    let expressions = parse(&tokens);
+    let expressions = parse(tokens);
     let code = generate_code(expressions);
 
     assert_eq!(

@@ -34,6 +34,7 @@ impl Compiler {
         match expression.expression_type {
             crate::parser::ExpressionType::LiteralExpression => todo!(),
             crate::parser::ExpressionType::PrefixExpression => todo!(),
+            crate::parser::ExpressionType::InfixExpression => todo!(),
             crate::parser::ExpressionType::ReturnExpression => {
                 self.emit_code_for_return(expression);
             }
@@ -47,6 +48,9 @@ impl Compiler {
                 let val = right_side.token.literal_as_boolean();
                 let val = if val { 0 } else { 1 };
                 self.asm_write(format!("mov rbx, {}", val).as_str());
+            },
+            crate::parser::ExpressionType::InfixExpression => {
+                todo!()
             },
             crate::parser::ExpressionType::PrefixExpression => {
                 self.emit_code_for_negation(right_side);
@@ -67,6 +71,9 @@ impl Compiler {
             }
             crate::parser::ExpressionType::PrefixExpression => {
                 self.emit_code_for_negation(right_side); // already leaves val in rbx
+            },
+            crate::parser::ExpressionType::InfixExpression => {
+                todo!()
             },
             crate::parser::ExpressionType::ReturnExpression => {
                 panic!("can not return a return");
