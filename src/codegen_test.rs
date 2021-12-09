@@ -68,8 +68,7 @@ fn return_negation_of_a_negation_of_a_literal() {
 global _start
 _start:
 mov rbx, 0
-sete al
-movzx rbx, al
+xor rbx, 1
 mov rax, 1
 int 0x80
 "#,

@@ -50,8 +50,7 @@ impl Compiler {
             },
             crate::parser::ExpressionType::PrefixExpression => {
                 self.emit_code_for_negation(right_side);
-                self.asm_write("sete al");
-                self.asm_write("movzx rbx, al");
+                self.asm_write("xor rbx, 1");
             },
             crate::parser::ExpressionType::ReturnExpression => panic!("can not prefix a return"),
         }

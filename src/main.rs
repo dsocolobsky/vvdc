@@ -6,7 +6,7 @@ use std::fs;
 use std::process::Command;
 
 fn main() {
-    let code = fs::read_to_string("programs/0_return42.vvdl").expect("Unable to read file");
+    let code = fs::read_to_string("programs/1_return_not_not_5.vvdl").expect("Unable to read file");
     println!("{}", code);
     println!("============ TOKENS ====================");
     let tokens = lexer::lex_program(&code);
