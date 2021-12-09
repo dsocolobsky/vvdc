@@ -197,3 +197,86 @@ fn return_negation_of_negation() {
         "negated number is 5"
     );
 }
+
+#[test]
+fn addition_of_two_numbers() {
+    let tokens = lex_program("12 + 4;");
+    let expressions = parse(tokens);
+    
+    // return (!(!5))
+    assert_eq!(1, expressions.len(), "number of expressions");
+    assert_eq!(
+        ExpressionType::InfixExpression,
+        expressions[0].expression_type,
+        "outer expression is an addition"
+    );
+
+    let left_expression = expressions[0].left.as_ref().unwrap();
+    assert_eq!(
+        ExpressionType::LiteralExpression,
+        left_expression.expression_type,
+        "lhs is literal"
+    );
+    assert_eq!(
+        Token::number(12),
+        left_expression.token,
+        "lhs token is literal 12"
+    );
+
+    let right_expression = expressions[0].right.as_ref().unwrap();
+    assert_eq!(
+        ExpressionType::LiteralExpression,
+        right_expression.expression_type,
+        "rhs is literal"
+    );
+    assert_eq!(
+        Token::number(4),
+        right_expression.token,
+        "rhs token is literal 4"
+    );
+}
+
+#[test]
+fn return_addition_of_two_numbers() {
+    let tokens = lex_program("return 12 + 4;");
+    let expressions = parse(tokens);
+    
+    // return (!(!5))
+    assert_eq!(1, expressions.len(), "number of expressions");
+    assert_eq!(
+        ExpressionType::ReturnExpression,
+        expressions[0].expression_type,
+        "outer expression is a return"
+    );
+
+    let infix_expression = expressions[0].right.as_ref().unwrap();
+    assert_eq!(
+        ExpressionType::InfixExpression,
+        infix_expression.expression_type,
+        "inner expression is an addition"
+    );
+
+    let left_expression = infix_expression.left.as_ref().unwrap();
+    assert_eq!(
+        ExpressionType::LiteralExpression,
+        left_expression.expression_type,
+        "lhs is literal"
+    );
+    assert_eq!(
+        Token::number(12),
+        left_expression.token,
+        "lhs token is literal 12"
+    );
+
+    let right_expression = infix_expression.right.as_ref().unwrap();
+    assert_eq!(
+        ExpressionType::LiteralExpression,
+        right_expression.expression_type,
+        "rhs is literal"
+    );
+    assert_eq!(
+        Token::number(4),
+        right_expression.token,
+        "rhs token is literal 4"
+    );
+}

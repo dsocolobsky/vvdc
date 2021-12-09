@@ -75,3 +75,22 @@ int 0x80
         code
     );
 }
+
+#[test]
+fn return_addition_of_two_numbers() {
+    let tokens = lex_program("return 12 + 4;");
+    let expressions = parse(tokens);
+    let code = generate_code(expressions);
+
+    assert_eq!(
+        r#"section .text
+global _start
+_start:
+mov rbx, 12
+add rbx, 4
+mov rax, 1
+int 0x80
+"#,
+        code
+    );
+}

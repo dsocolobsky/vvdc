@@ -59,6 +59,29 @@ impl Compiler {
             crate::parser::ExpressionType::ReturnExpression => panic!("can not prefix a return"),
         }
     }
+    
+    fn emit_code_for_addition(&mut self, expression: &Expression) {
+        let left_side = expression.left_side();
+        let right_side = expression.right_side();
+
+        match left_side.expression_type {
+            crate::parser::ExpressionType::LiteralExpression => {
+                self.asm_write(format!("mov rbx, {:?}", left_side.token.literal.as_ref().unwrap()).as_str());
+            },
+            crate::parser::ExpressionType::InfixExpression => todo!(),
+            crate::parser::ExpressionType::PrefixExpression => todo!(),
+            crate::parser::ExpressionType::ReturnExpression => panic!("can not prefix a return"),
+        }
+
+        match right_side.expression_type {
+            crate::parser::ExpressionType::LiteralExpression => {
+                self.asm_write(format!("add rbx, {:?}", right_side.token.literal.as_ref().unwrap()).as_str());
+            },
+            crate::parser::ExpressionType::InfixExpression => todo!(),
+            crate::parser::ExpressionType::PrefixExpression => todo!(),
+            crate::parser::ExpressionType::ReturnExpression => panic!("can not prefix a return"),
+        }
+    }
 
     fn emit_code_for_return(&mut self, expression: &Expression) {
         let right_side = expression.right_side();
@@ -73,7 +96,7 @@ impl Compiler {
                 self.emit_code_for_negation(right_side); // already leaves val in rbx
             },
             crate::parser::ExpressionType::InfixExpression => {
-                todo!()
+                self.emit_code_for_addition(right_side);
             },
             crate::parser::ExpressionType::ReturnExpression => {
                 panic!("can not return a return");

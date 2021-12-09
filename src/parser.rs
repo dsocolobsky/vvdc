@@ -54,6 +54,10 @@ impl Expression {
         }
     }
 
+    pub fn left_side(&self) -> &Expression {
+        self.left.as_ref().unwrap().as_ref()
+    }
+
     pub fn right_side(&self) -> &Expression {
         self.right.as_ref().unwrap().as_ref()
     }
@@ -86,7 +90,7 @@ impl Parser {
         }
     }
 
-    fn parse_expression(&self, from: usize) -> (Option<Expression>, usize) {
+    fn parse_expression(&mut self, from: usize) -> (Option<Expression>, usize) {
         let token = &self.tokens[from];
         match token.token_type {
             TokenType::Bang => {
@@ -98,20 +102,27 @@ impl Parser {
                 return (Some(expression), 1 + adv);
             }
             TokenType::String | TokenType::Literal | TokenType::Number => {
-                let expression = Expression::literal_expression(self.tokens[from].clone());
-                return (Some(expression), 1);
+                if self.parsing_infix {
+                    let expression = Expression::literal_expression(self.tokens[from].clone());
+                    return (Some(expression), 1);
+                }
+                let (infix, adv) = self.parse_expression(from + 1);
+                return (infix, 1 + adv)
             }
             TokenType::Assignment => todo!(),
-            TokenType::Plus => todo!(),
-                /*let (rhs, adv) = parse_expression(tokens, from+1);
-                let (lhs, _) = parse_expression(tokens, from - 1);
+            TokenType::Plus => {
+                self.parsing_infix = true;
+                let (lhs, _) = self.parse_expression(from - 1);
+                let (rhs, adv) = self.parse_expression(from + 1);
     
-                let expression = Expression::prefix_expression(
-                    tokens[from].clone(),
+                let expression = Expression::infix_expression(
+                    self.tokens[from].clone(),
+                    lhs.unwrap(),
                     rhs.unwrap()
                 );
+                self.parsing_infix = false;
                 return (Some(expression), 1 + adv);
-            },*/
+            },
             TokenType::Minus => todo!(),
             TokenType::Asterisk => todo!(),
             TokenType::Semicolon => return (None, 1),
