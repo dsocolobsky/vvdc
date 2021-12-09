@@ -43,6 +43,42 @@ fn unary_negation() {
 }
 
 #[test]
+fn double_negation() {
+    let tokens = lex_program("!!5");
+    let expressions = parse(&tokens);
+
+    assert_eq!(1, expressions.len(), "number of expressions");
+    assert_eq!(
+        ExpressionType::PrefixExpression,
+        expressions[0].expression_type
+    );
+    assert_eq!(Token::bang(), expressions[0].token, "expression is a bang");
+
+    let right_expression = expressions[0].right.as_ref().unwrap();
+    assert_eq!(
+        ExpressionType::PrefixExpression,
+        right_expression.expression_type,
+        "right expression is another prefix expression"
+    );
+    assert_eq!(
+        Token::bang(),
+        right_expression.token,
+        "right expression is another bang"
+    );
+
+    let numeric_expression = right_expression.right.as_ref().unwrap();
+    assert_eq!(
+        ExpressionType::LiteralExpression,
+        numeric_expression.expression_type
+    );
+    assert_eq!(
+        Token::number(5),
+        numeric_expression.token,
+        "numeric expression is number 5"
+    );
+}
+
+#[test]
 fn return_number() {
     let tokens = lex_program("return 42;");
     let expressions = parse(&tokens);
