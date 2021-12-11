@@ -3,41 +3,46 @@ pub mod lexer;
 pub mod parser;
 pub mod tokens;
 use std::fs;
-use std::process::Command;
+use std::process::{Command, ExitStatus};
 
 fn main() {
     let code = fs::read_to_string("programs/2_return_addition.vvdl").expect("Unable to read file");
     println!("{}", code);
-    println!("============ TOKENS ====================");
+    println!("============ TOKENS ============");
     let tokens = lexer::lex_program(&code);
     println!("{:?}", tokens);
-    println!("============== AST ==================");
+    println!("============ AST ============");
     let expressions = parser::parse(tokens);
     println!("{:?}", &expressions);
-    println!("============== CODE ==================");
+    println!("============ ASSEMBLY ============");
     let code = codegen::generate_code(expressions);
     println!("{}", code);
-    println!("\n");
 
+    println!("============ BUILDING ============");
     // Write .asm file
-    println!("Writing to file");
     fs::write("programs/obj/output.asm", code).expect("Unable to write file");
 
     // Call nasm on .asm file to generate .o file
-    let output = Command::new("nasm")
+    let nasm_output = Command::new("nasm")
         .args(["-f elf64", "programs/obj/output.asm"])
-        .output()
+        .status()
         .expect("failed to execute nasm");
-    println!("nasm:");
-    println!("{:?}", output);
+    if nasm_output.success() {
+        println!("nasm ok")
+    } else {
+        println!("nasm error: {}", nasm_output);
+    }
 
     // Call linker to generate final executable
-    let output = Command::new("ld")
+    let ld_output = Command::new("ld")
         .args(["-s", "-o", "programs/obj/output", "programs/obj/output.o"])
-        .output()
+        .status()
         .expect("failed to execute ld");
-    println!("ld:");
-    println!("{:?}", output);
+    if ld_output.success() {
+        println!("ld ok")
+    } else {
+        println!("ld error: {}", ld_output);
+    }
 }
 
 mod test {
