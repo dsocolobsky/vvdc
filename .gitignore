@@ -1,2 +1,7 @@
 /target
 /programs/obj
+/.vscode/launch.json
+/.idea/.gitignore
+/.idea/modules.xml
+/.idea/vcs.xml
+/.idea/vvdc.iml

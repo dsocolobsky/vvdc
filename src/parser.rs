@@ -90,6 +90,14 @@ impl Parser {
         }
     }
 
+    fn peek_next(&self, from: usize) -> Option<Token> {
+        if (from + 1) < self.tokens.len() {
+            Some(self.tokens[from+1].clone())
+        } else {
+            None
+        }
+    }
+
     fn parse_expression(&mut self, from: usize) -> (Option<Expression>, usize) {
         let token = &self.tokens[from];
         match token.token_type {
@@ -102,12 +110,13 @@ impl Parser {
                 return (Some(expression), 1 + adv);
             }
             TokenType::String | TokenType::Literal | TokenType::Number => {
-                if self.parsing_infix {
-                    let expression = Expression::literal_expression(self.tokens[from].clone());
-                    return (Some(expression), 1);
+                let next_token = self.peek_next(from).unwrap();
+                if next_token.token_type == TokenType::Plus {
+                    let (infix, adv) = self.parse_expression(from + 1);
+                    return (infix, 1 + adv)
                 }
-                let (infix, adv) = self.parse_expression(from + 1);
-                return (infix, 1 + adv)
+                let expression = Expression::literal_expression(self.tokens[from].clone());
+                return (Some(expression), 1);
             }
             TokenType::Assignment => todo!(),
             TokenType::Plus => {

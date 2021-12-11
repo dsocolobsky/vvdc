@@ -5,7 +5,7 @@ use parser::parse;
 
 #[test]
 fn literals() {
-    let tokens = lex_program(r#"1337 "banana" tomato"#);
+    let tokens = lex_program(r#"1337 "banana" tomato;"#);
     let expressions = parse(tokens);
 
     assert_eq!(3, expressions.len());
@@ -20,7 +20,7 @@ fn literals() {
 
 #[test]
 fn unary_negation() {
-    let tokens = lex_program("!5");
+    let tokens = lex_program("!5;");
     let expressions = parse(tokens);
 
     assert_eq!(1, expressions.len(), "number of expressions");
@@ -44,7 +44,7 @@ fn unary_negation() {
 
 #[test]
 fn double_negation() {
-    let tokens = lex_program("!!5");
+    let tokens = lex_program("!!5;");
     let expressions = parse(tokens);
 
     assert_eq!(1, expressions.len(), "number of expressions");
