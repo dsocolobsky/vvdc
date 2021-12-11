@@ -1,7 +1,51 @@
 use super::*;
-use crate::{parser::ExpressionType, tokens::Token};
+use crate::{parser::ExpressionType, tokens::Token, tokens::TokenType};
 use lexer::lex_program;
 use parser::parse;
+
+macro_rules! expect_prefix {
+    ($toktype:expr, $seen:expr) => {
+        assert_eq!(ExpressionType::PrefixExpression, $seen.expression_type, "expected a prefix expression");
+        assert_eq!($toktype, $seen.token.token_type);
+    };
+    ($seen:expr) => {
+        assert_eq!(ExpressionType::PrefixExpression, $seen.expression_type, "expected a prefix expression")
+    };
+}
+
+macro_rules! expect_literal_type {
+    ($seen:expr) => {
+        assert_eq!(ExpressionType::LiteralExpression, $seen.expression_type, "expected a literal expression");
+    }
+}
+
+macro_rules! expect_number {
+    ($number:expr, $seen:expr) => {
+        expect_literal_type!($seen);
+        assert_eq!(Token::number($number), $seen.token, "wrong number value");
+    }
+}
+
+macro_rules! expect_literal {
+    ($lit:expr, $seen:expr) => {
+        expect_literal_type!($seen);
+        assert_eq!(Token::literal($lit), $seen.token, "wrong literal value");
+    }
+}
+
+macro_rules! expect_string {
+    ($str:expr, $seen:expr) => {
+        expect_literal_type!($seen);
+        assert_eq!(Token::string($str), $seen.token, "wrong string value");
+    }
+}
+
+macro_rules! expect_return {
+    ($a:expr) => {
+        assert_eq!(ExpressionType::ReturnExpression, $a.expression_type);
+        assert_eq!(TokenType::KeywordReturn, $a.token.token_type, "return token is not 'return'");
+    }
+}
 
 #[test]
 fn literals() {
@@ -9,13 +53,9 @@ fn literals() {
     let expressions = parse(tokens);
 
     assert_eq!(3, expressions.len());
-    assert!(expressions
-        .iter()
-        .all(|expression| expression.expression_type == ExpressionType::LiteralExpression));
-
-    assert_eq!(Token::number(1337), expressions[0].token);
-    assert_eq!(Token::string("banana"), expressions[1].token);
-    assert_eq!(Token::literal("tomato"), expressions[2].token);
+    expect_number!(1337, expressions[0]);
+    expect_string!("banana", expressions[1]);
+    expect_literal!("tomato", expressions[2]);
 }
 
 #[test]
@@ -24,22 +64,10 @@ fn unary_negation() {
     let expressions = parse(tokens);
 
     assert_eq!(1, expressions.len(), "number of expressions");
-    assert_eq!(
-        ExpressionType::PrefixExpression,
-        expressions[0].expression_type
-    );
-    assert_eq!(Token::bang(), expressions[0].token, "expression is a bang");
+    expect_prefix!(TokenType::Bang, expressions[0]);
 
     let right_expression = expressions[0].right.as_ref().unwrap();
-    assert_eq!(
-        ExpressionType::LiteralExpression,
-        right_expression.expression_type
-    );
-    assert_eq!(
-        Token::number(5),
-        right_expression.token,
-        "right expression is number 5"
-    );
+    expect_number!(5, right_expression);
 }
 
 #[test]
@@ -48,34 +76,13 @@ fn double_negation() {
     let expressions = parse(tokens);
 
     assert_eq!(1, expressions.len(), "number of expressions");
-    assert_eq!(
-        ExpressionType::PrefixExpression,
-        expressions[0].expression_type
-    );
-    assert_eq!(Token::bang(), expressions[0].token, "expression is a bang");
+    expect_prefix!(TokenType::Bang, expressions[0]);
 
     let right_expression = expressions[0].right.as_ref().unwrap();
-    assert_eq!(
-        ExpressionType::PrefixExpression,
-        right_expression.expression_type,
-        "right expression is another prefix expression"
-    );
-    assert_eq!(
-        Token::bang(),
-        right_expression.token,
-        "right expression is another bang"
-    );
+    expect_prefix!(TokenType::Bang, right_expression);
 
     let numeric_expression = right_expression.right.as_ref().unwrap();
-    assert_eq!(
-        ExpressionType::LiteralExpression,
-        numeric_expression.expression_type
-    );
-    assert_eq!(
-        Token::number(5),
-        numeric_expression.token,
-        "numeric expression is number 5"
-    );
+    expect_number!(5, numeric_expression);
 }
 
 #[test]
@@ -112,90 +119,27 @@ fn return_expression() {
     let expressions = parse(tokens);
 
     assert_eq!(1, expressions.len(), "number of expressions");
-    assert_eq!(
-        ExpressionType::ReturnExpression,
-        expressions[0].expression_type
-    );
-    assert_eq!(
-        Token::keyword_return(),
-        expressions[0].token,
-        "return token is 'return'"
-    );
-
+    expect_return!(expressions[0]);
     let right_expression = expressions[0].right.as_ref().unwrap();
-    assert_eq!(
-        ExpressionType::PrefixExpression,
-        right_expression.expression_type
-    );
-    assert_eq!(
-        Token::bang(),
-        right_expression.token,
-        "right expression token is a bang"
-    );
-
+    expect_prefix!(TokenType::Bang, right_expression);
     // Right side of negation expression => number 1
     let negation_expression_right = right_expression.right.as_ref().unwrap();
-    assert_eq!(
-        ExpressionType::LiteralExpression,
-        negation_expression_right.expression_type
-    );
-    assert_eq!(
-        Token::number(1),
-        negation_expression_right.token,
-        "right side of negation expression is number 1"
-    );
+    expect_number!(1, negation_expression_right);
 }
 
 #[test]
 fn return_negation_of_negation() {
     let tokens = lex_program("return !!5;");
     let expressions = parse(tokens);
-    
-    // return (!(!5))
+
     assert_eq!(1, expressions.len(), "number of expressions");
-    assert_eq!(
-        ExpressionType::ReturnExpression,
-        expressions[0].expression_type,
-        "outer expression is a return"
-    );
-
-    // !(!5)
-    let right_expression = expressions[0].right.as_ref().unwrap();
-    assert_eq!(
-        ExpressionType::PrefixExpression,
-        right_expression.expression_type,
-        "first prefix expression is a prefix"
-    );
-    assert_eq!(
-        Token::bang(),
-        right_expression.token,
-        "right expression token is a bang"
-    );
-
-    // !5
-    let right_right_expression = right_expression.right.as_ref().unwrap();
-    assert_eq!(
-        ExpressionType::PrefixExpression,
-        right_right_expression.expression_type,
-        "second prefix expression is a prefix"
-    );
-    assert_eq!(
-        Token::bang(),
-        right_right_expression.token,
-        "right right expression token is a bang"
-    );
-
-    let number_exp = right_right_expression.right.as_ref().unwrap();
-    assert_eq!(
-        ExpressionType::LiteralExpression,
-        number_exp.expression_type,
-        "inner expression is a literal"
-    );
-    assert_eq!(
-        Token::number(5),
-        number_exp.token,
-        "negated number is 5"
-    );
+    expect_return!(expressions[0]);
+    let not_not_five = expressions[0].right.as_ref().unwrap();
+    expect_prefix!(TokenType::Bang, not_not_five);
+    let not_five = not_not_five.right.as_ref().unwrap();
+    expect_prefix!(TokenType::Bang, not_five);
+    let five = not_five.right.as_ref().unwrap();
+    expect_number!(5, five);
 }
 
 #[test]
@@ -212,42 +156,19 @@ fn addition_of_two_numbers() {
     );
 
     let left_expression = expressions[0].left.as_ref().unwrap();
-    assert_eq!(
-        ExpressionType::LiteralExpression,
-        left_expression.expression_type,
-        "lhs is literal"
-    );
-    assert_eq!(
-        Token::number(12),
-        left_expression.token,
-        "lhs token is literal 12"
-    );
-
     let right_expression = expressions[0].right.as_ref().unwrap();
-    assert_eq!(
-        ExpressionType::LiteralExpression,
-        right_expression.expression_type,
-        "rhs is literal"
-    );
-    assert_eq!(
-        Token::number(4),
-        right_expression.token,
-        "rhs token is literal 4"
-    );
+    expect_number!(12, left_expression);
+    expect_number!(4, right_expression);
 }
 
-#[test]
+/*#[test]
 fn return_addition_of_two_numbers() {
     let tokens = lex_program("return 12 + 4;");
     let expressions = parse(tokens);
     
     // return (!(!5))
     assert_eq!(1, expressions.len(), "number of expressions");
-    assert_eq!(
-        ExpressionType::ReturnExpression,
-        expressions[0].expression_type,
-        "outer expression is a return"
-    );
+    expect_return!(expressions[0]);
 
     let infix_expression = expressions[0].right.as_ref().unwrap();
     assert_eq!(
@@ -257,16 +178,9 @@ fn return_addition_of_two_numbers() {
     );
 
     let left_expression = infix_expression.left.as_ref().unwrap();
-    assert_eq!(
-        ExpressionType::LiteralExpression,
-        left_expression.expression_type,
-        "lhs is literal"
-    );
-    assert_eq!(
-        Token::number(12),
-        left_expression.token,
-        "lhs token is literal 12"
-    );
+    let right_expression = infix_expression.right.as_ref().unwrap();
+    expect_number!(12, left_expression);
+    expect_number!(4, right_expression);
 
     let right_expression = infix_expression.right.as_ref().unwrap();
     assert_eq!(
@@ -279,4 +193,4 @@ fn return_addition_of_two_numbers() {
         right_expression.token,
         "rhs token is literal 4"
     );
-}
+}*/
