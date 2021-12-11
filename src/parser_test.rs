@@ -158,3 +158,22 @@ fn return_addition_of_two_numbers() {
     expect_number!(12, left_expression);
     expect_number!(4, right_expression);
 }
+
+#[test]
+fn return_addition_of_three_numbers() {
+    let tokens = lex_program("return 12 + 4 + 6;");
+    let expressions = parse(tokens);
+
+    assert_eq!(1, expressions.len(), "number of expressions");
+    expect_return!(expressions[0]);
+
+    let addition_12_rest = expressions[0].right_side();
+    let exp_12 = addition_12_rest.left_side();
+    let addition_4_6 = addition_12_rest.right_side();
+
+    expect_infix!(TokenType::Plus, addition_12_rest);
+    expect_number!(12, exp_12);
+
+    expect_number!(4, addition_4_6.left_side());
+    expect_number!(6, addition_4_6.right_side());
+}

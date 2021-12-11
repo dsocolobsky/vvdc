@@ -67,7 +67,6 @@ pub struct Parser {
     tokens: Vec<Token>,
     expressions: Vec<Expression>,
     token_index: usize,
-    parsing_infix: bool,
 }
 
 impl Parser {
@@ -76,7 +75,6 @@ impl Parser {
             tokens: tokens,
             expressions: Vec::new(),
             token_index: 0,
-            parsing_infix: false,
         }
     }
 
@@ -102,7 +100,13 @@ impl Parser {
         Expression::literal_expression(self.tokens[from].clone())
     }
 
-    fn parse_expression(&mut self, from: usize) -> (Option<Expression>, usize) {
+    fn parse_infix_expression(&self, left: Expression, from: usize) -> (Expression, usize) {
+        let (right, adv) = self.parse_expression(from + 1);
+        let infix = Expression::infix_expression(self.tokens[from].clone(), left, right.unwrap());
+        (infix, adv + 1)
+    }
+
+    fn parse_expression(&self, from: usize) -> (Option<Expression>, usize) {
         let token = &self.tokens[from];
         match token.token_type {
             TokenType::Bang => {
@@ -114,16 +118,16 @@ impl Parser {
                 return (Some(expression), 1 + adv);
             }
             TokenType::String | TokenType::Literal | TokenType::Number => {
+                let number = self.parse_number(from);
                 let next_token = self.peek_next(from).unwrap();
                 if next_token.token_type == TokenType::Plus {
-                    let (infix, adv) = self.parse_expression(from + 1);
-                    return (infix, 1 + adv)
+                    let (infix, adv) = self.parse_infix_expression(number, from + 1);
+                    return (Some(infix), 1 + adv)
                 }
-                return (Some(self.parse_number(from)), 1);
+                return (Some(number), 1);
             }
             TokenType::Assignment => todo!(),
             TokenType::Plus => {
-                self.parsing_infix = true;
                 let lhs = self.parse_number(from - 1);
                 let (rhs, adv) = self.parse_expression(from + 1);
     
@@ -132,7 +136,6 @@ impl Parser {
                     lhs,
                     rhs.unwrap()
                 );
-                self.parsing_infix = false;
                 return (Some(expression), 1 + adv);
             },
             TokenType::Minus => todo!(),
