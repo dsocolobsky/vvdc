@@ -66,7 +66,7 @@ fn unary_negation() {
     assert_eq!(1, expressions.len(), "number of expressions");
     expect_prefix!(TokenType::Bang, expressions[0]);
 
-    let right_expression = expressions[0].right.as_ref().unwrap();
+    let right_expression = expressions[0].right_side();
     expect_number!(5, right_expression);
 }
 
@@ -78,10 +78,10 @@ fn double_negation() {
     assert_eq!(1, expressions.len(), "number of expressions");
     expect_prefix!(TokenType::Bang, expressions[0]);
 
-    let right_expression = expressions[0].right.as_ref().unwrap();
+    let right_expression = expressions[0].right_side();
     expect_prefix!(TokenType::Bang, right_expression);
 
-    let numeric_expression = right_expression.right.as_ref().unwrap();
+    let numeric_expression = right_expression.right_side();
     expect_number!(5, numeric_expression);
 }
 
@@ -101,7 +101,7 @@ fn return_number() {
         "return token is 'return'"
     );
 
-    let right_expression = expressions[0].right.as_ref().unwrap();
+    let right_expression = expressions[0].right_side();
     assert_eq!(
         ExpressionType::LiteralExpression,
         right_expression.expression_type
@@ -120,10 +120,10 @@ fn return_expression() {
 
     assert_eq!(1, expressions.len(), "number of expressions");
     expect_return!(expressions[0]);
-    let right_expression = expressions[0].right.as_ref().unwrap();
+    let right_expression = expressions[0].right_side();
     expect_prefix!(TokenType::Bang, right_expression);
     // Right side of negation expression => number 1
-    let negation_expression_right = right_expression.right.as_ref().unwrap();
+    let negation_expression_right = right_expression.right_side();
     expect_number!(1, negation_expression_right);
 }
 
@@ -134,11 +134,11 @@ fn return_negation_of_negation() {
 
     assert_eq!(1, expressions.len(), "number of expressions");
     expect_return!(expressions[0]);
-    let not_not_five = expressions[0].right.as_ref().unwrap();
+    let not_not_five = expressions[0].right_side();
     expect_prefix!(TokenType::Bang, not_not_five);
-    let not_five = not_not_five.right.as_ref().unwrap();
+    let not_five = not_not_five.right_side();
     expect_prefix!(TokenType::Bang, not_five);
-    let five = not_five.right.as_ref().unwrap();
+    let five = not_five.right_side();
     expect_number!(5, five);
 }
 
@@ -155,8 +155,8 @@ fn addition_of_two_numbers() {
         "outer expression is an addition"
     );
 
-    let left_expression = expressions[0].left.as_ref().unwrap();
-    let right_expression = expressions[0].right.as_ref().unwrap();
+    let left_expression = expressions[0].left_side();
+    let right_expression = expressions[0].right_side();
     expect_number!(12, left_expression);
     expect_number!(4, right_expression);
 }
@@ -170,19 +170,19 @@ fn return_addition_of_two_numbers() {
     assert_eq!(1, expressions.len(), "number of expressions");
     expect_return!(expressions[0]);
 
-    let infix_expression = expressions[0].right.as_ref().unwrap();
+    let infix_expression = expressions[0].right_side();
     assert_eq!(
         ExpressionType::InfixExpression,
         infix_expression.expression_type,
         "inner expression is an addition"
     );
 
-    let left_expression = infix_expression.left.as_ref().unwrap();
-    let right_expression = infix_expression.right.as_ref().unwrap();
+    let left_expression = infix_expression.left_side();
+    let right_expression = infix_expression.right_side();
     expect_number!(12, left_expression);
     expect_number!(4, right_expression);
 
-    let right_expression = infix_expression.right.as_ref().unwrap();
+    let right_expression = infix_expression.right_side();
     assert_eq!(
         ExpressionType::LiteralExpression,
         right_expression.expression_type,
