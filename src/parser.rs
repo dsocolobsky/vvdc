@@ -98,6 +98,10 @@ impl Parser {
         }
     }
 
+    fn parse_number(&self, from: usize) -> Expression {
+        Expression::literal_expression(self.tokens[from].clone())
+    }
+
     fn parse_expression(&mut self, from: usize) -> (Option<Expression>, usize) {
         let token = &self.tokens[from];
         match token.token_type {
@@ -115,18 +119,17 @@ impl Parser {
                     let (infix, adv) = self.parse_expression(from + 1);
                     return (infix, 1 + adv)
                 }
-                let expression = Expression::literal_expression(self.tokens[from].clone());
-                return (Some(expression), 1);
+                return (Some(self.parse_number(from)), 1);
             }
             TokenType::Assignment => todo!(),
             TokenType::Plus => {
                 self.parsing_infix = true;
-                let (lhs, _) = self.parse_expression(from - 1);
+                let lhs = self.parse_number(from - 1);
                 let (rhs, adv) = self.parse_expression(from + 1);
     
                 let expression = Expression::infix_expression(
                     self.tokens[from].clone(),
-                    lhs.unwrap(),
+                    lhs,
                     rhs.unwrap()
                 );
                 self.parsing_infix = false;
@@ -150,7 +153,7 @@ impl Parser {
             TokenType::KeywordReturn => {
                 let (right_expression, positions) = self.parse_expression(self.token_index + 1);
                 let expression = Expression::return_expression(right_expression.unwrap());
-                return (Some(expression), 2 + positions);
+                return (Some(expression), 1 + positions);
             }
             TokenType::KeywordWhile => todo!(),
             TokenType::KeywordLet => todo!(),

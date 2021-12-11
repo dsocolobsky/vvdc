@@ -161,7 +161,7 @@ fn addition_of_two_numbers() {
     expect_number!(4, right_expression);
 }
 
-/*#[test]
+#[test]
 fn return_addition_of_two_numbers() {
     let tokens = lex_program("return 12 + 4;");
     let expressions = parse(tokens);
@@ -193,4 +193,4 @@ fn return_addition_of_two_numbers() {
         right_expression.token,
         "rhs token is literal 4"
     );
-}*/
+}
