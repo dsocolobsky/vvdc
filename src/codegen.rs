@@ -77,7 +77,12 @@ impl Compiler {
             crate::parser::ExpressionType::LiteralExpression => {
                 self.asm_write(format!("add rbx, {:?}", right_side.token.literal.as_ref().unwrap()).as_str());
             },
-            crate::parser::ExpressionType::InfixExpression => todo!(),
+            crate::parser::ExpressionType::InfixExpression => {
+                let first_number = right_side.left_side();
+                let second_number = right_side.right_side();
+                self.asm_write(format!("add rbx, {:?}", first_number.token.literal.as_ref().unwrap()).as_str());
+                self.asm_write(format!("add rbx, {:?}", second_number.token.literal.as_ref().unwrap()).as_str());
+            }
             crate::parser::ExpressionType::PrefixExpression => todo!(),
             crate::parser::ExpressionType::ReturnExpression => panic!("can not prefix a return"),
         }
