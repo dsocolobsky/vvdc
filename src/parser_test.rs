@@ -195,3 +195,37 @@ fn return_addition_of_four_numbers() {
     expect_number!(6, addition_6_3.left_side());
     expect_number!(3, addition_6_3.right_side());
 }
+
+#[test]
+fn subtraction_of_two_numbers() {
+    let tokens = lex_program("12 - 4;");
+    let expressions = parse(tokens);
+
+    assert_eq!(1, expressions.len(), "number of expressions");
+    expect_infix!(TokenType::Minus, expressions[0]);
+    let left_expression = expressions[0].left_side();
+    let right_expression = expressions[0].right_side();
+    expect_number!(12, left_expression);
+    expect_number!(4, right_expression);
+}
+
+#[test]
+fn subtraction_of_four_numbers() {
+    let tokens = lex_program("10 - 2 - 4 - 1;");
+    let expressions = parse(tokens);
+
+    assert_eq!(1, expressions.len(), "number of expressions");
+
+    let subtraction_10_rest = &expressions[0];
+    expect_infix!(TokenType::Minus, subtraction_10_rest);
+    expect_number!(10, subtraction_10_rest.left_side());
+
+    let subtraction_2_rest = subtraction_10_rest.right_side();
+    expect_infix!(TokenType::Minus, subtraction_2_rest);
+    expect_number!(2, subtraction_2_rest.left_side());
+
+    let subtraction_4_1 = subtraction_2_rest.right_side();
+    expect_infix!(TokenType::Minus, subtraction_4_1);
+    expect_number!(4, subtraction_4_1.left_side());
+    expect_number!(1, subtraction_4_1.right_side());
+}

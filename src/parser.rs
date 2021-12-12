@@ -124,14 +124,14 @@ impl Parser {
             TokenType::String | TokenType::Literal | TokenType::Number => {
                 let number = self.parse_number(from);
                 let next_token = self.peek_next(from).unwrap();
-                if next_token.token_type == TokenType::Plus {
+                if next_token.token_type == TokenType::Plus || next_token.token_type == TokenType::Minus {
                     let (infix, adv) = self.parse_infix_expression(number, from + 1);
                     return (Some(infix), 1 + adv)
                 }
                 return (Some(number), 1);
             }
             TokenType::Assignment => todo!(),
-            TokenType::Plus => {
+            TokenType::Plus | TokenType::Minus => {
                 let lhs = self.parse_number(from - 1);
                 let (rhs, adv) = self.parse_expression(from + 1);
     
@@ -142,7 +142,6 @@ impl Parser {
                 );
                 return (Some(expression), 1 + adv);
             },
-            TokenType::Minus => todo!(),
             TokenType::Asterisk => todo!(),
             TokenType::Semicolon => return (None, 1),
             TokenType::Equals => todo!(),
