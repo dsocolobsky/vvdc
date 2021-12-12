@@ -61,6 +61,10 @@ impl Expression {
     pub fn right_side(&self) -> &Expression {
         self.right.as_ref().unwrap().as_ref()
     }
+
+    pub fn literal_as_str(&self) -> Box<str> {
+        self.token.literal_as_str()
+    }
 }
 
 pub struct Parser {

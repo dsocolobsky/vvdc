@@ -184,4 +184,14 @@ impl Token {
             LiteralType::String(lit) => lit != "",
         }
     }
+
+    pub fn literal_as_str(&self) -> Box<str> {
+        let val = self.literal.as_ref().unwrap();
+        match val {
+            LiteralType::Identifier(lit) => lit.as_str().into(),
+            LiteralType::Symbol(lit) => lit.as_str().into(),
+            LiteralType::Number(lit) => lit.to_string().into(),
+            LiteralType::String(lit) => lit.as_str().into(),
+        }
+    }
 }
