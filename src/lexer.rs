@@ -37,59 +37,62 @@ impl Lexer {
         self.code = program.chars().collect::<Vec<char>>();
 
         while self.current < self.code.len() {
-            let c = self.next();
+            let c = self.next().to_string();
 
-            match c {
-                c if c.is_whitespace() => {}
-                '+' => self.tokens.push(Token::plus()),
-                '-' => self.tokens.push(Token::minus()),
-                '*' => self.tokens.push(Token::asterisk()),
-                ';' => self.tokens.push(Token::semicolon()),
-                '(' => self.tokens.push(Token::lparen()),
-                ')' => self.tokens.push(Token::rparen()),
-                '{' => self.tokens.push(Token::lbrace()),
-                '}' => self.tokens.push(Token::rbrace()),
-                '=' => {
+            let (tokentype, literal): (TokenType, String) = match c.as_str() {
+                c if c.trim().is_empty() => {(TokenType::None, "".to_string())}
+                "+" => (TokenType::Plus, c),
+                "-" => (TokenType::Minus, c),
+                "*" => (TokenType::Asterisk, c),
+                ";" => (TokenType::Semicolon, c),
+                "(" => (TokenType::Lparen, c),
+                ")" => (TokenType::Rparen, c),
+                "{" => (TokenType::Lbrace, c),
+                "}" => (TokenType::Rbrace, c),
+                "=" => {
                     if self.peek() == '=' {
-                        self.tokens.push(Token::equals());
                         self.next();
+                        (TokenType::Equals, "==".to_string())
                     } else {
-                        self.tokens.push(Token::assignment());
+                        (TokenType::Assignment, c)
                     }
                 }
-                '!' => {
+                "!" => {
                     if self.peek() == '=' {
-                        self.tokens.push(Token::unequal());
                         self.next();
+                        (TokenType::Unequal, "!=".to_string())
                     } else {
-                        self.tokens.push(Token::bang());
+                        (TokenType::Bang, c)
                     }
                 }
-                '<' => {
+                "<" => {
                     if self.peek() == '=' {
-                        self.tokens.push(Token::lteq());
                         self.next();
+                        (TokenType::Lteq, "<=".to_string())
                     } else {
-                        self.tokens.push(Token::lt());
+                        (TokenType::Lt, c)
                     }
                 }
-                '>' => {
+                ">" => {
                     if self.peek() == '=' {
-                        self.tokens.push(Token::gteq());
                         self.next();
+                        (TokenType::Gteq, ">=".to_string())
                     } else {
-                        self.tokens.push(Token::gt());
+                        (TokenType::Gt, c)
                     }
                 }
-                '"' => self.scan_string(),
-                c if c.is_ascii_alphabetic() => self.scan_literal(),
-                c if c.is_ascii_digit() => self.scan_number(),
+                "\"" => self.scan_string(),
+                c if c.chars().nth(0).unwrap().is_ascii_alphabetic() => self.scan_identifier(),
+                c if c.chars().nth(0).unwrap().is_ascii_digit() => self.scan_number(),
                 _ => panic!("unrecognized char: '{}'", c),
+            };
+            if tokentype != TokenType::None {
+                self.tokens.push(Token::new(tokentype, literal));
             }
         }
     }
 
-    fn scan_generic(&mut self, ttype: TokenType) {
+    fn scan_generic(&mut self, ttype: TokenType) -> String {
         let mut literal = String::from("");
         if ttype != TokenType::String {
             literal.push(self.current_char);
@@ -107,26 +110,20 @@ impl Lexer {
             self.next();
         }
 
-        let token = match ttype {
-            TokenType::Literal => Token::keyword_or_literal(&literal),
-            TokenType::String => Token::string(&literal),
-            TokenType::Number => Token::number(literal.parse::<i64>().unwrap()),
-            _ => panic!("Should not be parsing {} as literal", literal),
-        };
-
-        self.tokens.push(token);
+        literal
     }
 
-    fn scan_string(&mut self) {
-        self.scan_generic(TokenType::String);
+    fn scan_string(&mut self) -> (TokenType, String) {
+        (TokenType::String, self.scan_generic(TokenType::String))
     }
 
-    fn scan_literal(&mut self) {
-        self.scan_generic(TokenType::Literal);
+    fn scan_identifier(&mut self) -> (TokenType, String) {
+        let identifier = self.scan_generic(TokenType::Identifier);
+        (Token::type_given_identifier(&identifier), identifier)
     }
 
-    fn scan_number(&mut self) {
-        self.scan_generic(TokenType::Number);
+    fn scan_number(&mut self) -> (TokenType, String) {
+        (TokenType::Number, self.scan_generic(TokenType::Number))
     }
 }
 

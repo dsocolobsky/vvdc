@@ -25,7 +25,7 @@ fn main() {
     println!("{:?}", tokens);
     println!("============ AST ============");
     let expressions = parser::parse(tokens);
-    println!("{:?}", &expressions);
+    //println!("{:?}", &expressions);
     println!("============ ASSEMBLY ============");
     let code = codegen::generate_code(expressions);
     println!("{}", code);

@@ -1,12 +1,13 @@
 use crate::parser::Expression;
+use crate::parser::BoxExpression;
 
 struct Compiler {
     code: String,
-    expressions: Vec<Expression>,
+    expressions: Vec<BoxExpression>,
 }
 
 impl Compiler {
-    fn new(expressions: Vec<Expression>) -> Compiler {
+    fn new(expressions: Vec<BoxExpression>) -> Compiler {
         Compiler {
             code: String::from(""),
             expressions: expressions,
@@ -38,7 +39,7 @@ impl Compiler {
         self.asm_write("_start:");
     }
 
-    fn emit_code_for_expression(&mut self, expression: &Expression) {
+    fn emit_code_for_expression(&mut self, expression: &dyn Expression) {
         match expression.expression_type {
             crate::parser::ExpressionType::LiteralExpression => todo!(),
             crate::parser::ExpressionType::PrefixExpression => todo!(),
@@ -49,12 +50,11 @@ impl Compiler {
         }
     }
 
-    fn emit_code_for_negation(&mut self, expression: &Expression) {
+    fn emit_code_for_negation(&mut self, expression: &dyn Expression) {
         let right_side = expression.right_side();
         match right_side.expression_type {
             crate::parser::ExpressionType::LiteralExpression => {
-                let val = right_side.token.literal_as_boolean();
-                let val = if val { 0 } else { 1 };
+                let val = if right_side.token.literal == "false" { 0 } else { 1 };
                 self.asm_write(format!("mov rbx, {}", val).as_str());
             },
             crate::parser::ExpressionType::InfixExpression => {
@@ -68,14 +68,14 @@ impl Compiler {
         }
     }
     
-    fn emit_code_for_addition(&mut self, expression: &Expression, first_iteration: bool) {
+    fn emit_code_for_addition(&mut self, expression: &dyn Expression, first_iteration: bool) {
         if let Some(left_side) = expression.left.as_ref() {
             match left_side.as_ref().expression_type {
                 crate::parser::ExpressionType::LiteralExpression => {
                     if first_iteration {
-                        self.asm_mov("rbx", &left_side.literal_as_str());
+                        self.asm_mov("rbx", &left_side.token.literal);
                     } else {
-                        self.asm_add("rbx", &left_side.literal_as_str());
+                        self.asm_add("rbx", &left_side.token.literal);
                     }
                 },
                 crate::parser::ExpressionType::InfixExpression => todo!(),
@@ -83,17 +83,17 @@ impl Compiler {
                 crate::parser::ExpressionType::ReturnExpression => panic!("can not prefix a return"),
             }
         } else {
-            self.asm_add("rbx", &expression.literal_as_str());
+            self.asm_add("rbx", &expression.token.literal);
         }
 
         if let Some(right_side) = expression.right.as_ref() {
             match right_side.expression_type {
                 crate::parser::ExpressionType::LiteralExpression => {
-                    self.asm_add("rbx", &right_side.literal_as_str());
+                    self.asm_add("rbx", &right_side.token.literal);
                 },
                 crate::parser::ExpressionType::InfixExpression => {
-                    self.emit_code_for_addition(right_side.left_side(), false);
-                    self.emit_code_for_addition(right_side.right_side(), false);
+                    self.emit_code_for_addition(*right_side.left, false);
+                    self.emit_code_for_addition(*right_side.right, false);
                 }
                 crate::parser::ExpressionType::PrefixExpression => todo!(),
                 crate::parser::ExpressionType::ReturnExpression => panic!("can not prefix a return"),
@@ -101,11 +101,11 @@ impl Compiler {
         }
     }
 
-    fn emit_code_for_return(&mut self, expression: &Expression) {
+    fn emit_code_for_return(&mut self, expression: &dyn Expression) {
         let right_side = expression.right_side();
         match right_side.expression_type {
             crate::parser::ExpressionType::LiteralExpression => {
-                self.asm_mov("rbx", &right_side.literal_as_str());
+                self.asm_mov("rbx", &right_side.token.literal);
             }
             crate::parser::ExpressionType::PrefixExpression => {
                 self.emit_code_for_negation(right_side); // already leaves val in rbx
@@ -122,7 +122,7 @@ impl Compiler {
     }
 }
 
-pub fn generate_code(expressions: Vec<Expression>) -> String {
+pub fn generate_code(expressions: Vec<BoxExpression>) -> String {
     let mut compiler = Compiler::new(expressions);
     compiler.compile();
     compiler.code
