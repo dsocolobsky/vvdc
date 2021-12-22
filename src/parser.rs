@@ -20,11 +20,11 @@ pub trait Expression {
         None
     }
 
-    fn left(&self) -> Option<BoxExpression> {
+    fn left(&self) -> Option<&BoxExpression> {
         None
     }
 
-    fn right(&self) -> Option<BoxExpression> {
+    fn right(&self) -> Option<&BoxExpression> {
         None
     }
 }
@@ -111,8 +111,8 @@ impl Expression for PrefixExpression {
         format!("{:?}", self.token.token_type)
     }
 
-    fn right(&self) -> Option<BoxExpression> {
-        Some(self.right)
+    fn right(&self) -> Option<&BoxExpression> {
+        Some(&self.right)
     }
 }
 
@@ -137,12 +137,12 @@ impl Expression for InfixExpression {
         format!("{:?}", self.token.token_type)
     }
 
-    fn left(&self) -> Option<BoxExpression> {
-        Some(self.left)
+    fn left(&self) -> Option<&BoxExpression> {
+        Some(&self.left)
     }
 
-    fn right(&self) -> Option<BoxExpression> {
-        Some(self.right)
+    fn right(&self) -> Option<&BoxExpression> {
+        Some(&self.right)
     }
 }
 
@@ -166,8 +166,8 @@ impl Expression for ReturnExpression {
         format!("{:?}", self.token.token_type)
     }
 
-    fn right(&self) -> Option<BoxExpression> {
-        Some(self.value)
+    fn right(&self) -> Option<&BoxExpression> {
+        Some(&self.value)
     }
 }
 
@@ -180,7 +180,7 @@ pub struct Parser {
 impl Parser {
     fn new(tokens: Vec<Token>) -> Parser {
         Parser {
-            tokens: tokens,
+            tokens,
             expressions: Vec::new(),
             token_index: 0,
         }

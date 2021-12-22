@@ -15,8 +15,8 @@ impl Compiler {
 
     fn compile(&mut self) {
         self.build_prelude();
-        for expression in self.expressions.iter() {
-            self.emit_code_for_expression(*expression);
+        for expression in &self.expressions {
+            self.emit_code_for_expression(&expression);
         }
     }
 
@@ -38,7 +38,7 @@ impl Compiler {
         self.asm_write("_start:");
     }
 
-    fn emit_code_for_expression(&mut self, expression: BoxExpression) {
+    fn emit_code_for_expression(&mut self, expression: &BoxExpression) {
         match expression.get_type() {
             ExpressionType::Number => todo!(),
             ExpressionType::Infix => todo!(),
@@ -51,7 +51,7 @@ impl Compiler {
         }
     }
 
-    fn emit_code_for_negation(&mut self, expression: BoxExpression) {
+    fn emit_code_for_negation(&mut self, expression: &BoxExpression) {
         let right_side = expression.right().unwrap();
         match right_side.get_type() {
             ExpressionType::Number => {
@@ -69,7 +69,7 @@ impl Compiler {
         }
     }
     
-    fn emit_code_for_addition(&mut self, expression: BoxExpression, first_iteration: bool) {
+    fn emit_code_for_addition(&mut self, expression: &BoxExpression, first_iteration: bool) {
         if let Some(left_side) = expression.left() {
             match left_side.get_type() {
                 ExpressionType::Number => {
@@ -107,7 +107,7 @@ impl Compiler {
         }
     }
 
-    fn emit_code_for_return(&mut self, expression: BoxExpression) {
+    fn emit_code_for_return(&mut self, expression: &BoxExpression) {
         let right_side = expression.right().unwrap();
         match right_side.get_type() {
             ExpressionType::Number => {
