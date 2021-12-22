@@ -1,3 +1,4 @@
+use std::fmt::Debug;
 use crate::tokens::Token;
 use crate::tokens::TokenType;
 
@@ -14,6 +15,18 @@ pub enum ExpressionType {
 pub trait Expression {
     fn get_type(&self) -> ExpressionType;
     fn as_str(&self) -> String;
+
+    fn literal(&self) -> Option<String> {
+        None
+    }
+
+    fn left(&self) -> Option<BoxExpression> {
+        None
+    }
+
+    fn right(&self) -> Option<BoxExpression> {
+        None
+    }
 }
 
 pub type BoxExpression = Box<dyn Expression>;
@@ -32,6 +45,10 @@ impl Expression for IdentifierExpression {
     fn as_str(&self) -> String {
         self.value.to_string()
     }
+
+    fn literal(&self) -> Option<String> {
+        Some(self.token.literal.clone())
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -47,6 +64,10 @@ impl Expression for NumberLiteralExpression {
 
     fn as_str(&self) -> String {
         self.value.to_string()
+    }
+
+    fn literal(&self) -> Option<String> {
+        Some(self.token.literal.clone())
     }
 }
 
@@ -64,12 +85,21 @@ impl Expression for StringLiteralExpression {
     fn as_str(&self) -> String {
         self.value.to_string()
     }
+
+    fn literal(&self) -> Option<String> {
+        Some(self.token.literal.clone())
+    }
 }
 
-#[derive(Debug)]
 pub struct PrefixExpression {
     pub token: Token,
     pub right: BoxExpression,
+}
+
+impl Debug for PrefixExpression {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "PrefixExpression")
+    }
 }
 
 impl Expression for PrefixExpression {
@@ -78,15 +108,24 @@ impl Expression for PrefixExpression {
     }
 
     fn as_str(&self) -> String {
-        self.token.token_type.to_string()
+        format!("{:?}", self.token.token_type)
+    }
+
+    fn right(&self) -> Option<BoxExpression> {
+        Some(self.right)
     }
 }
 
-#[derive(Debug)]
 pub struct InfixExpression {
     pub token: Token,
     pub left: BoxExpression,
     pub right: BoxExpression,
+}
+
+impl Debug for InfixExpression {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "InfixExpression")
+    }
 }
 
 impl Expression for InfixExpression {
@@ -95,14 +134,27 @@ impl Expression for InfixExpression {
     }
 
     fn as_str(&self) -> String {
-        self.token.token_type.to_string()
+        format!("{:?}", self.token.token_type)
+    }
+
+    fn left(&self) -> Option<BoxExpression> {
+        Some(self.left)
+    }
+
+    fn right(&self) -> Option<BoxExpression> {
+        Some(self.right)
     }
 }
 
-#[derive(Debug, Clone)]
 pub struct ReturnExpression {
     pub token: Token,
     pub value: BoxExpression,
+}
+
+impl Debug for ReturnExpression {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "Return")
+    }
 }
 
 impl Expression for ReturnExpression {
@@ -111,7 +163,11 @@ impl Expression for ReturnExpression {
     }
 
     fn as_str(&self) -> String {
-        self.token.token_type.to_string()
+        format!("{:?}", self.token.token_type)
+    }
+
+    fn right(&self) -> Option<BoxExpression> {
+        Some(self.value)
     }
 }
 
@@ -148,13 +204,17 @@ impl Parser {
         }
     }
 
-    fn parse_infix_expression(&self, left: &BoxExpression, from: usize) -> (BoxExpression, usize) {
+    fn parse_infix_expression(&self, left: BoxExpression, from: usize) -> (BoxExpression, usize) {
         let (right, adv) = self.parse_expression(from + 1);
-        let infix = Expression::infix_expression(self.tokens[from].clone(), left, right.unwrap());
-        (infix, adv + 1)
+        let infix = InfixExpression {
+            token: self.tokens[from].clone(),
+            left,
+            right: right.unwrap()
+        };
+        (Box::new(infix), adv + 1)
     }
 
-    fn parse_expression<T: Expression>(&self, from: usize) -> (Option<T>, usize) {
+    fn parse_expression(&self, from: usize) -> (Option<BoxExpression>, usize) {
         let token = &self.tokens[from];
         match token.token_type {
             TokenType::Bang => {
@@ -163,28 +223,34 @@ impl Parser {
                     token: self.tokens[from].clone(),
                     right: rhs.unwrap(),
                 };
-                return (Some::<Expression>(expression), 1 + adv);
+                return (Some(Box::new(expression)), 1 + adv);
             }
-            TokenType::String => return (Some(self.tokens[from].literal), 1),
+            TokenType::String => {
+                let expression = StringLiteralExpression {
+                    token: self.tokens[from].clone(),
+                    value: self.tokens[from].literal.clone(),
+                };
+                return (Some(Box::new(expression)), 1);
+            },
             TokenType::Number => {
                 let expression = NumberLiteralExpression {
                     token: self.tokens[from].clone(),
                     value: self.tokens[from].to_numeric(),
                 };
-                return (Some::<Expression>(expression), 1);
+                return (Some(Box::new(expression)), 1);
             }
             TokenType::Identifier => todo!(),
             TokenType::Assignment => todo!(),
             TokenType::Plus | TokenType::Minus => {
-                let lhs = self.parse_expression(from - 1);
+                let (lhs, _) = self.parse_expression(from - 1);
                 let (rhs, adv) = self.parse_expression(from + 1);
 
                 let expression = InfixExpression {
                     token: self.tokens[from].clone(),
-                    left: Box::new(lhs),
+                    left: lhs.unwrap(),
                     right: rhs.unwrap(),
                 };
-                return (Some::<Expression>(expression), 1 + adv);
+                return (Some(Box::new(expression)), 1 + adv);
             }
             TokenType::Asterisk => todo!(),
             TokenType::Semicolon => return (None, 1),
@@ -201,12 +267,12 @@ impl Parser {
             TokenType::KeywordIf => todo!(),
             TokenType::KeywordPrint => todo!(),
             TokenType::KeywordReturn => {
-                let (right_expression, positions) = self.parse_expression(self.token_index + 1);
+                let (right_expression, adv) = self.parse_expression(self.token_index + 1);
                 let expression = ReturnExpression {
                     token: self.tokens[from].clone(),
                     value: right_expression.unwrap(),
                 };
-                return (Some::<Expression>(expression), 1 + positions);
+                return (Some(Box::new(expression)), 1 + adv);
             }
             TokenType::KeywordWhile => todo!(),
             TokenType::KeywordLet => todo!(),

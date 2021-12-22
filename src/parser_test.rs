@@ -20,7 +20,7 @@ macro_rules! expect_infix {
 macro_rules! expect_number {
     ($number:expr, $seen:expr) => {
         assert_eq!(ExpressionType::Number, $seen.get_type(), "expected a number");
-        assert_eq!(format!("{}", $number), *$seen.to_string(), "wrong number value");
+        assert_eq!(format!("{}", $number), *$seen.as_str(), "wrong number value");
     }
 }
 

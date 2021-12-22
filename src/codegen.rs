@@ -1,5 +1,4 @@
-use crate::parser::Expression;
-use crate::parser::BoxExpression;
+use crate::parser::{BoxExpression, ExpressionType};
 
 struct Compiler {
     code: String,
@@ -16,8 +15,8 @@ impl Compiler {
 
     fn compile(&mut self) {
         self.build_prelude();
-        for expression in self.expressions.clone() {
-            self.emit_code_for_expression(&expression);
+        for expression in self.expressions.iter() {
+            self.emit_code_for_expression(*expression);
         }
     }
 
@@ -39,81 +38,90 @@ impl Compiler {
         self.asm_write("_start:");
     }
 
-    fn emit_code_for_expression(&mut self, expression: &dyn Expression) {
-        match expression.expression_type {
-            crate::parser::ExpressionType::LiteralExpression => todo!(),
-            crate::parser::ExpressionType::PrefixExpression => todo!(),
-            crate::parser::ExpressionType::InfixExpression => todo!(),
-            crate::parser::ExpressionType::ReturnExpression => {
+    fn emit_code_for_expression(&mut self, expression: BoxExpression) {
+        match expression.get_type() {
+            ExpressionType::Number => todo!(),
+            ExpressionType::Infix => todo!(),
+            ExpressionType::String => todo!(),
+            ExpressionType::Identifier => todo!(),
+            ExpressionType::Prefix => todo!(),
+            ExpressionType::Return => {
                 self.emit_code_for_return(expression);
             }
         }
     }
 
-    fn emit_code_for_negation(&mut self, expression: &dyn Expression) {
-        let right_side = expression.right_side();
-        match right_side.expression_type {
-            crate::parser::ExpressionType::LiteralExpression => {
-                let val = if right_side.token.literal == "false" { 0 } else { 1 };
+    fn emit_code_for_negation(&mut self, expression: BoxExpression) {
+        let right_side = expression.right().unwrap();
+        match right_side.get_type() {
+            ExpressionType::Number => {
+                let val = if right_side.literal().unwrap() == "false" { 0 } else { 1 };
                 self.asm_write(format!("mov rbx, {}", val).as_str());
             },
-            crate::parser::ExpressionType::InfixExpression => {
-                todo!()
-            },
-            crate::parser::ExpressionType::PrefixExpression => {
+            ExpressionType::Infix => todo!(),
+            ExpressionType::String => todo!(),
+            ExpressionType::Identifier => todo!(),
+            ExpressionType::Prefix => {
                 self.emit_code_for_negation(right_side);
                 self.asm_write("xor rbx, 1");
             },
-            crate::parser::ExpressionType::ReturnExpression => panic!("can not prefix a return"),
+            ExpressionType::Return => panic!("can not prefix a return"),
         }
     }
     
-    fn emit_code_for_addition(&mut self, expression: &dyn Expression, first_iteration: bool) {
-        if let Some(left_side) = expression.left.as_ref() {
-            match left_side.as_ref().expression_type {
-                crate::parser::ExpressionType::LiteralExpression => {
+    fn emit_code_for_addition(&mut self, expression: BoxExpression, first_iteration: bool) {
+        if let Some(left_side) = expression.left() {
+            match left_side.get_type() {
+                ExpressionType::Number => {
+                    let st = left_side.literal().unwrap();
                     if first_iteration {
-                        self.asm_mov("rbx", &left_side.token.literal);
+                        self.asm_mov("rbx", &*st);
                     } else {
-                        self.asm_add("rbx", &left_side.token.literal);
+                        self.asm_add("rbx", &*st);
                     }
                 },
-                crate::parser::ExpressionType::InfixExpression => todo!(),
-                crate::parser::ExpressionType::PrefixExpression => todo!(),
-                crate::parser::ExpressionType::ReturnExpression => panic!("can not prefix a return"),
+                ExpressionType::Infix => todo!(),
+                ExpressionType::String => todo!(),
+                ExpressionType::Identifier => todo!(),
+                ExpressionType::Prefix => todo!(),
+                ExpressionType::Return => panic!("can not prefix a return"),
             }
         } else {
-            self.asm_add("rbx", &expression.token.literal);
+            self.asm_add("rbx", &expression.literal().unwrap());
         }
 
-        if let Some(right_side) = expression.right.as_ref() {
-            match right_side.expression_type {
-                crate::parser::ExpressionType::LiteralExpression => {
-                    self.asm_add("rbx", &right_side.token.literal);
+        if let Some(right_side) = expression.right() {
+            match right_side.get_type() {
+                ExpressionType::Number => {
+                    self.asm_add("rbx", &*right_side.literal().unwrap());
                 },
-                crate::parser::ExpressionType::InfixExpression => {
-                    self.emit_code_for_addition(*right_side.left, false);
-                    self.emit_code_for_addition(*right_side.right, false);
-                }
-                crate::parser::ExpressionType::PrefixExpression => todo!(),
-                crate::parser::ExpressionType::ReturnExpression => panic!("can not prefix a return"),
+                ExpressionType::Infix => {
+                    self.emit_code_for_addition(right_side.left().unwrap(), false);
+                    self.emit_code_for_addition(right_side.right().unwrap(), false);
+                },
+                ExpressionType::String => todo!(),
+                ExpressionType::Identifier => todo!(),
+                ExpressionType::Prefix => todo!(),
+                ExpressionType::Return => panic!("can not prefix a return"),
             }
         }
     }
 
-    fn emit_code_for_return(&mut self, expression: &dyn Expression) {
-        let right_side = expression.right_side();
-        match right_side.expression_type {
-            crate::parser::ExpressionType::LiteralExpression => {
-                self.asm_mov("rbx", &right_side.token.literal);
-            }
-            crate::parser::ExpressionType::PrefixExpression => {
-                self.emit_code_for_negation(right_side); // already leaves val in rbx
+    fn emit_code_for_return(&mut self, expression: BoxExpression) {
+        let right_side = expression.right().unwrap();
+        match right_side.get_type() {
+            ExpressionType::Number => {
+                self.asm_mov("rbx", &*right_side.literal().unwrap());
             },
-            crate::parser::ExpressionType::InfixExpression => {
+            ExpressionType::Infix => {
                 self.emit_code_for_addition(right_side, true);
             },
-            crate::parser::ExpressionType::ReturnExpression => {
+            ExpressionType::String => todo!(),
+            ExpressionType::Identifier => todo!(),
+            ExpressionType::Prefix => {
+                self.emit_code_for_negation(right_side); // already leaves val in rbx
+            },
+            ExpressionType::Return => {
                 panic!("can not return a return");
             },
         }

@@ -37,7 +37,7 @@ fn main() {
 
     // Call nasm on .asm file to generate .o file
     let nasm_output = Command::new("nasm")
-        .args(["-f elf64", &*asm_path])
+        .args(&["-f elf64", &*asm_path])
         .status()
         .expect("failed to execute nasm");
     if nasm_output.success() {
@@ -50,7 +50,7 @@ fn main() {
     let executable_path = format!("programs/obj/{}", program_name);
     let obj_path = format!("{}.o", executable_path);
     let ld_output = Command::new("ld")
-        .args(["-s", "-o", &*executable_path, &*obj_path])
+        .args(&["-s", "-o", &*executable_path, &*obj_path])
         .status()
         .expect("failed to execute ld");
     if ld_output.success() {
